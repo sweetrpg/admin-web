@@ -1,4 +1,11 @@
 
+## 0.1.0 - 2026-07-28
+
+### Added
+- Scaffold admin-web Vapor frontend for banner message management
+
+
+
 ## Unreleased
 
 ### Added
