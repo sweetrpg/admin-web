@@ -10,4 +10,11 @@ permissions:
 jobs:
   ci:
     uses: sweetrpg/github-actions/.github/workflows/swift-ci.yaml@master
+    with:
+      # Unconstrained dependency resolution pulls in swift-log/swift-nio releases requiring
+      # a newer swift-tools-version than this reusable workflow's "6.0" default toolchain -
+      # "package X is using Swift tools version 6.1/6.2 but the installed version is 6.0.3"
+      # on a cold Package.resolved. Bump to the toolchain that actually satisfies them rather
+      # than fighting the resolver with manual version caps.
+      swift-version: "6.2"
     secrets: inherit
