@@ -1,0 +1,36 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: web-v1
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: sweetrpg-admin-strip-prefix-web@kubernetescrd
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prd
+    # main-web's Ingress owns the ExternalDNS hostname/target annotations for dev.sweetrpg.com -
+    # deliberately not repeating them here (see docs/git-repos.md's "Shared-host Ingress
+    # ownership" section in sweetrpg/platform): ExternalDNS ownership conflicts if more than one
+    # Ingress for the same host sets them.
+
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dev.sweetrpg.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /admin
+            backend:
+              service:
+                name: web-v1
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - dev.sweetrpg.com
+      # Shared secretName across every frontend's Ingress for this host, deliberately - see
+      # main-web's Ingress and docs/git-repos.md.
+      secretName: sweetrpg-dev-tls

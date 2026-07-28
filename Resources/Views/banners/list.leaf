@@ -1,0 +1,46 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">Manage</span>
+			<h2>Banner Messages</h2>
+			<a class="btn btn-primary" href="#(meta.basePath)/banners/new">New Banner</a>
+		</section>
+
+		#if(isEmpty):
+			<p class="empty-state">No banner messages yet.</p>
+		#endif
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Scope</th>
+					<th>Severity</th>
+					<th>Status</th>
+					<th>Message</th>
+					<th>Expires</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				#for(banner in banners):
+					<tr>
+						<td>#(banner.scopeLabel)</td>
+						<td><span class="tag tag-#(banner.severity)">#(banner.severity)</span></td>
+						<td><span class="tag tag-status-#(banner.status)">#(banner.status)</span></td>
+						<td>#(banner.message)</td>
+						<td>#(banner.expiresAtLabel)</td>
+						<td class="table-actions">
+							<a class="btn btn-ghost" href="#(meta.basePath)/banners/#(banner.id)/edit">Edit</a>
+							<form action="#(meta.basePath)/banners/#(banner.id)/expire" method="post" style="display:inline">
+								<button type="submit" class="btn btn-ghost">Expire now</button>
+							</form>
+							<form action="#(meta.basePath)/banners/#(banner.id)/delete" method="post" style="display:inline">
+								<button type="submit" class="btn btn-ghost">Delete</button>
+							</form>
+						</td>
+					</tr>
+				#endfor
+			</tbody>
+		</table>
+	#endexport
+#endextend

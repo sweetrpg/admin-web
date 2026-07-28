@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Admin - Banner Messages</title>
+	<link rel="icon" type="image/png" href="#(meta.sharedAssetsURL)/static/favicon.png">
+	<link rel="stylesheet" href="#(meta.sharedAssetsURL)/static/main.css">
+</head>
+<body>
+	#extend("partials/header")
+	<main class="page">
+		#import("body")
+	</main>
+	#extend("partials/footer")
+</body>
+</html>

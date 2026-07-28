@@ -1,0 +1,29 @@
+---
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: web-env
+
+data:
+  ENV: dev
+  PORT: "8080"
+  # No REDIS_HOST yet - this app runs a single replica in dev (see deployment.yaml, no
+  # `replicas:` override), so in-memory sessions are fine for now. Wire up a shared Redis
+  # instance (see catalog-web's overlays/dev/configmaps.yaml for the pattern) before scaling
+  # this beyond one replica, or sessions will bounce between pods.
+  # Server-to-server backend URL, called directly Service-to-Service - no ingress in the path.
+  ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
+  # Traefik strips /admin before the request reaches this app (see middlewares.yaml), so the
+  # app's own routes are unprefixed - but every link/form/redirect it generates needs to add
+  # /admin back so the *next* browser request round-trips through the ingress correctly. See
+  # Request.basePath in AppPaths.swift.
+  INGRESS_BASE_PATH: /admin
+  # Where the SweetRPG logo in the nav links out to - the platform's root site, not this app's
+  # own home page.
+  SWEETRPG_ROOT_URL: https://dev.sweetrpg.com/
+  # Base URL for shared frontend static assets (logo, favicon, stylesheet), served from
+  # assets-web rather than this app's own Public/.
+  SHARED_ASSETS_URL: https://dev.sweetrpg.com/assets
+  BUILD_INFO_PATH: /app/config/build-info.json
+  LOG_LEVEL: info
