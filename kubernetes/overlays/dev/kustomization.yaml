@@ -24,4 +24,4 @@ generatorOptions:
 images:
   - name: admin-web
     newName: ghcr.io/sweetrpg/admin-web
-    newTag: v0.0.1
+    newTag: latest
