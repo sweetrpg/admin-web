@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: web-env
+
+data:
+  ENV: local
+  PORT: "8080"
+  # No REDIS_HOST - single replica locally, in-memory sessions are fine (see dev overlay's
+  # comment for the same reasoning).
+  # Server-to-server backend URL, called directly Service-to-Service - no ingress in the path.
+  ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
+  # Traefik strips /admin before the request reaches this app (see middlewares.yaml), same as
+  # the dev overlay - every link/redirect this app generates needs the prefix added back.
+  INGRESS_BASE_PATH: /admin
+  # Shared host behind the single traefik-tailscale front door (see
+  # support/config/K8s/traefik/overlays/minikube), same convention as the dev overlay's
+  # dev.sweetrpg.com.
+  SWEETRPG_ROOT_URL: https://sweetrpg-local.curlew-smoot.ts.net/
+  SHARED_ASSETS_URL: https://sweetrpg-local.curlew-smoot.ts.net/assets
+  BUILD_INFO_PATH: /app/config/build-info.json
+  LOG_LEVEL: info
