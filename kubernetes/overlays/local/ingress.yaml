@@ -1,0 +1,24 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: web-v1
+
+spec:
+  # Tailscale Kubernetes operator manages this Ingress: no ExternalDNS entry to make (MagicDNS
+  # names it admin-web.<tailnet>.ts.net) and no cert-manager issuer to configure (it provisions a
+  # Let's Encrypt cert on first connection). Requires MagicDNS and HTTPS enabled on the tailnet -
+  # see https://tailscale.com/docs/kubernetes-operator/reference/limitations.
+  # Unlike the dev overlay's dev.sweetrpg.com/admin path-prefix Ingress, this app gets its own
+  # host and runs at root - no strip-prefix Middleware needed (see configmaps.yaml's
+  # INGRESS_BASE_PATH).
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: web-v1
+      port:
+        name: http
+  tls:
+    - hosts:
+        - admin-web
