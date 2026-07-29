@@ -12,14 +12,13 @@ data:
   # comment for the same reasoning).
   # Server-to-server backend URL, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
-  # Root-hosted on its own Tailscale hostname - no path prefix to add back into generated
-  # links/redirects, unlike the dev overlay's /admin prefix behind Traefik.
-  INGRESS_BASE_PATH: ""
-  # Where the SweetRPG logo in the nav links out to - main-web's own Tailscale hostname here,
-  # not dev.sweetrpg.com.
-  SWEETRPG_ROOT_URL: https://main-web.curlew-smoot.ts.net/
-  # assets-web has no path prefix to strip on its own Tailscale Ingress - its routes are already
-  # unprefixed, so no /assets suffix here (see main-web's overlays/local/configmaps.yaml).
-  SHARED_ASSETS_URL: https://assets-web.curlew-smoot.ts.net
+  # Traefik strips /admin before the request reaches this app (see middlewares.yaml), same as
+  # the dev overlay - every link/redirect this app generates needs the prefix added back.
+  INGRESS_BASE_PATH: /admin
+  # Shared host behind the single traefik-tailscale front door (see
+  # support/config/K8s/traefik/overlays/minikube), same convention as the dev overlay's
+  # dev.sweetrpg.com.
+  SWEETRPG_ROOT_URL: https://sweetrpg-local.curlew-smoot.ts.net/
+  SHARED_ASSETS_URL: https://sweetrpg-local.curlew-smoot.ts.net/assets
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info

@@ -8,6 +8,7 @@ resources:
   - configmaps.yaml
   - secrets.yaml
   - ingress.yaml
+  - middlewares.yaml
 
 labels:
   - pairs:
