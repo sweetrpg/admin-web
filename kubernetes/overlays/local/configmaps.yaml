@@ -22,3 +22,4 @@ data:
   SHARED_ASSETS_URL: https://sweetrpg.local/assets
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
+  AUTH0_CALLBACK_URL: https://sweetrpg.local/admin/auth/callback/auth0
