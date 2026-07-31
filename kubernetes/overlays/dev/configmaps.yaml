@@ -27,4 +27,4 @@ data:
   SHARED_ASSETS_URL: https://dev.sweetrpg.com/assets
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
-  AUTH0_CALLBACK_URL: https://dev.sweetrpg.com/admin/auth/callback/auth0
+  AUTH0_CALLBACK_URL: https://dev.sweetrpg.com/admin/auth/callback
