@@ -6,6 +6,5 @@ func routes(_ app: Application) throws {
     ["status": "ok", "hostname": Environment.get("HOSTNAME") ?? "unknown"]
   }
 
-  try app.register(collection: AuthController())
   try app.register(collection: BannerController())
 }

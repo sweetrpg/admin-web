@@ -8,18 +8,19 @@ metadata:
 data:
   ENV: local
   PORT: "8080"
-  # No REDIS_HOST - single replica locally, in-memory sessions are fine (see dev overlay's
-  # comment for the same reasoning).
+  # Shared "redis" instance in sweetrpg-support - see dev overlay's comment for the DB-index
+  # registry pointer.
+  REDIS_HOST: redis.sweetrpg-support.svc.cluster.local
+  REDIS_PORT: "6379"
+  REDIS_DB: "2"
   # Server-to-server backend URL, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
   # Traefik strips /admin before the request reaches this app (see middlewares.yaml), same as
   # the dev overlay - every link/redirect this app generates needs the prefix added back.
   INGRESS_BASE_PATH: /admin
-  # Shared host behind the single traefik-tailscale front door (see
-  # support/config/K8s/traefik/overlays/minikube), same convention as the dev overlay's
-  # dev.sweetrpg.com.
+  # Shared host behind the single traefik-tailscale front door, same convention as the dev
+  # overlay's dev.sweetrpg.com.
   SWEETRPG_ROOT_URL: https://sweetrpg.local/
   SHARED_ASSETS_URL: https://sweetrpg.local/assets
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
-  AUTH0_CALLBACK_URL: https://sweetrpg.local/admin/auth/callback

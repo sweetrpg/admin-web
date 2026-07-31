@@ -8,13 +8,15 @@ working in this repository.
 `admin-web` is a server-rendered Vapor (Swift) frontend for managing SweetRPG platform banner
 messages - create, edit, immediately expire, and delete banners that other frontends (main-web,
 catalog-web, ...) display. It is modeled structurally on `catalog-web`
-(`sweetrpg/catalog-web`) - same Auth0 Authorization Code flow, same path-prefix-behind-Traefik
-architecture, same Redis-backed session pattern - but is intentionally smaller: no Prometheus
-metrics, distributed tracing, Sentry reporting, CORS middleware, or rate limiting. Those exist in
-catalog-web because it's a public-facing, higher-traffic reader surface; this app is an internal
-tool with a handful of authenticated operators, so that instrumentation would be unused
-complexity rather than a baseline worth carrying forward unconditionally. Add any of it back if
-this app's operational needs actually justify it, not by default.
+(`sweetrpg/catalog-web`) - same path-prefix-behind-Traefik architecture, same read-only
+shared-session pattern - but is intentionally smaller: no Prometheus metrics, distributed
+tracing, Sentry reporting, CORS middleware, or rate limiting. Those exist in catalog-web because
+it's a public-facing, higher-traffic reader surface; this app is an internal tool with a handful
+of authenticated operators, so that instrumentation would be unused complexity rather than a
+baseline worth carrying forward unconditionally. Add any of it back if this app's operational
+needs actually justify it, not by default. As of platform's `add-user-api-authn-authz` change,
+this app is also slated to host the `admin`-gated role/service-access management UI alongside
+banner management (not a separate frontend) - see that change's design.md.
 
 Pages are rendered server-side (Leaf templates in `Resources/Views/`) from data fetched
 server-to-server from `admin-api` - not via browser-side `fetch`, same rationale as catalog-web
@@ -45,20 +47,35 @@ app generates has to add the prefix back via `Request.basePath` (`AppPaths.swift
 `Request.redirectLocal(to:)`, or the *next* browser request won't round-trip through the ingress
 correctly. Every Leaf template's internal `href`/`action`/`src` uses `#(meta.basePath)`.
 
+### Login and the shared session
+
+This app has no login flow of its own. `auth-web` is the platform's sole owner of the Auth0
+Authorization Code exchange (see `sweetrpg/platform`'s `add-user-api-authn-authz` OpenSpec
+change) - `AuthController.swift`/`Auth0Config.swift`/`ResilientRedisSessionDriver.swift` used to
+exist here and were removed as part of that migration, along with this app's own per-application
+Auth0 registration. "Log in"/"Log out" links (`meta.loginURL`/`meta.logoutURL`, `PageMeta`) point
+at `auth-web` directly instead.
+
+`Request.currentUser` (`SessionUserAccess.swift`) reads the shared `sweetrpg_session` cookie
+`auth-web` writes, from the shared `redis.sweetrpg-support` instance auth-web also uses, on its
+own DB index - see `sweetrpg/platform`'s `docs/frontend-conventions.md` for the full DB-index
+registry. It deliberately does not go through Vapor's `Session`/`SessionsMiddleware` - touching
+`req.session` on every request would create and write back a brand-new session for every
+anonymous visitor,
+which is exactly the write this read-only consumer must never make. Fails open (`nil`) on every
+error path.
+
 ### Trust boundary
 
-Per `design.md`'s explicit decision: any authenticated user in the Auth0 tenant can manage
-banners - no role-based restriction. `AuthRequiredMiddleware` gates every route on session
-presence only, nothing finer-grained. Narrowing this to a specific role/permission is future
-work, not a gap in this scaffold.
-
-### Auth0 application registration (human follow-up required)
-
-This app needs its own Auth0 application (client id/secret, its own callback URL) registered in
-the same tenant catalog-web uses - Auth0 requires a callback URL to be registered per
-application, so the client id can't be shared. A human with Auth0 dashboard/Management API
-access needs to create it and populate the `AUTH0_*` secret values (see
-`kubernetes/overlays/dev/secrets.yaml`).
+Revised from this app's original design (any authenticated user in the Auth0 tenant could manage
+banners): `AuthRequiredMiddleware` now requires the `admin` role, since this app also hosts the
+role/service-access management UI, a more sensitive surface than banner management alone. The
+`admin` role comes from the shared session's `roles` field, verified once by `users-api` at login
+time in `auth-web` - this app trusts that verification rather than re-checking per request (it
+never holds a bearer token to present to `users-api`'s `/authz/check` itself). Trade-off: a role
+revoked after login stays in effect until the session naturally expires or the user logs out and
+back in - see `AuthRequiredMiddleware.swift`'s doc comment for why re-verifying live isn't a
+better option here.
 
 ## Committing Code
 
@@ -77,6 +94,6 @@ swift test
 swift format lint --recursive --strict Sources Tests
 ```
 
-`swift run` serves on `:8080`. Without `REDIS_HOST` set, falls back to in-memory sessions. Without
-`ADMIN_API_URL` set, calls default to an in-cluster DNS name that won't resolve outside the
-cluster - set it to a reachable admin-api endpoint for local development.
+`swift run` serves on `:8080`. Without `REDIS_HOST` set, every visitor reads as logged-out.
+Without `ADMIN_API_URL` set, calls default to an in-cluster DNS name that won't resolve outside
+the cluster - set it to a reachable admin-api endpoint for local development.

@@ -22,7 +22,7 @@ struct BannerController: RouteCollection {
       ListContext(
         banners: sorted.map(LeafBanner.init),
         isEmpty: sorted.isEmpty,
-        user: req.currentUser.map(LeafUser.init),
+        user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
   }
@@ -37,7 +37,7 @@ struct BannerController: RouteCollection {
         banner: nil,
         scopeTypes: BannerScopeType.allCases.map(\.rawValue),
         severities: BannerSeverity.allCases.map(\.rawValue),
-        user: req.currentUser.map(LeafUser.init),
+        user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
   }
@@ -57,7 +57,7 @@ struct BannerController: RouteCollection {
         banner: LeafBannerForm(banner),
         scopeTypes: BannerScopeType.allCases.map(\.rawValue),
         severities: BannerSeverity.allCases.map(\.rawValue),
-        user: req.currentUser.map(LeafUser.init),
+        user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
   }

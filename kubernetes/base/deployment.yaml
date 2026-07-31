@@ -40,8 +40,6 @@ spec:
                             name: web-common
                       - configMapRef:
                             name: web-env
-                      - secretRef:
-                            name: web-auth0
                   ports:
                       - containerPort: 8080
                         name: http
