@@ -9,6 +9,7 @@ struct PageMeta: Content {
   let sharedAssetsURL: String
   let buildVersion: String
   let buildDate: String
+  let buildHash: String
 
   init(_ req: Request) {
     self.basePath = req.basePath
@@ -16,5 +17,6 @@ struct PageMeta: Content {
     self.sharedAssetsURL = req.sharedAssetsURL
     self.buildVersion = req.buildInfo.version
     self.buildDate = req.buildInfo.date
+    self.buildHash = String(req.buildInfo.sha.prefix(8))
   }
 }
