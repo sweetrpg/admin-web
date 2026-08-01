@@ -1,32 +1,14 @@
-import Foundation
 import Vapor
 
-/// Minimal user identity carried in the session cookie after login. Decoded from the Auth0 ID
-/// token's claims - see the SECURITY note on `decodeUnverifiedJWTPayload` before trusting this
-/// for anything beyond display. Same pattern as catalog-web's SessionUser.
+/// The identity `auth-web` writes into the shared session store - mirrors its own `SessionUser`
+/// model. `roles` comes from `users-api`'s verified `/authz/check` response (`auth-web` called
+/// it once at login), not an unverified local ID-token decode - this app no longer decodes any
+/// token itself. `AuthRequiredMiddleware` trusts `roles` as already verified rather than calling
+/// `/authz/check` again per request: this app never holds a bearer token of its own to present
+/// (it never talks to Auth0), only the session `auth-web` already established.
 struct SessionUser: Codable {
   let sub: String
   let name: String
   let email: String?
-}
-
-/// SECURITY: this decodes the JWT payload without verifying its signature. It is only safe to
-/// use for display (showing a name in the header) because the token arrives directly from
-/// Auth0's token endpoint over a server-to-server TLS connection in `AuthController.callback` -
-/// it is never accepted from anywhere else, so there is no forgery path today. Every route in
-/// this app is already gated on session presence by AuthRequiredMiddleware; if that gate is ever
-/// replaced with per-action authorization derived from token claims, add real signature
-/// verification against Auth0's JWKS endpoint first - do not extend this decoder's role without
-/// doing that.
-func decodeUnverifiedJWTPayload(_ jwt: String) -> [String: Any]? {
-  let parts = jwt.split(separator: ".")
-  guard parts.count == 3 else { return nil }
-  var base64 = String(parts[1])
-    .replacingOccurrences(of: "-", with: "+")
-    .replacingOccurrences(of: "_", with: "/")
-  while base64.count % 4 != 0 { base64 += "=" }
-  guard let data = Data(base64Encoded: base64),
-    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-  else { return nil }
-  return json
+  let roles: [String]
 }

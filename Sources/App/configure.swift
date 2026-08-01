@@ -15,13 +15,15 @@ public func configure(_ app: Application) async throws {
 
   app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
-  app.sessions.configuration.cookieName = "admin-web-session"
-  // Redis-backed sessions: this app can run multiple replicas behind a Service with no session
-  // affinity, so an in-memory session store would only work for whichever replica handled login.
-  // Falls back to in-memory if Redis isn't configured (local dev, or a single-replica dev
-  // deployment that hasn't wired up Redis yet).
+  // The shared "redis" instance in sweetrpg-support (auth-web's session store), read-only from
+  // here - not dedicated to any one service. See docs/frontend-conventions.md's "Shared
+  // sweetrpg-support Redis instance" section (sweetrpg/platform) for the full DB-index
+  // registry. This app never runs its own Auth0 code-exchange or SessionsMiddleware - see
+  // SessionUserAccess.swift.
   if let redisHost = Environment.get("REDIS_HOST"), !redisHost.isEmpty {
     let redisPort = Environment.get("REDIS_PORT").flatMap(Int.init) ?? 6379
+    // Must match auth-web's own DB index - this app reads the exact session keys auth-web
+    // writes, not a namespace of its own.
     let redisDB = Environment.get("REDIS_DB").flatMap(Int.init) ?? 0
     app.redis.configuration = try RedisConfiguration(
       hostname: redisHost,
@@ -29,20 +31,16 @@ public func configure(_ app: Application) async throws {
       password: Environment.get("REDIS_PASS"),
       database: redisDB
     )
-    // Not `.redis` (Vapor's stock RedisSessionsDriver): that driver propagates Redis errors
-    // straight through SessionsMiddleware, which runs on every request, so a Redis outage would
-    // 500 the whole app. ResilientRedisSessionDriver degrades instead - see its doc comment.
-    app.sessions.use { _ in ResilientRedisSessionDriver() }
+    app.sharedSessionRedisConfigured = true
   } else {
     app.logger.warning(
-      "REDIS_HOST not set - using in-memory sessions. Fine for local development, not for multi-replica deployments."
+      "REDIS_HOST not set - every visitor will read as logged-out."
     )
-    app.sessions.use(.memory)
   }
-  app.middleware.use(app.sessions.middleware)
 
-  // Every route below this line requires a valid session - see AuthRequiredMiddleware's doc
-  // comment for why this is a blanket gate rather than per-route opt-in.
+  // Every route below this line requires a valid session with the admin role - see
+  // AuthRequiredMiddleware's doc comment for why this is a blanket gate rather than per-route
+  // opt-in.
   app.middleware.use(AuthRequiredMiddleware())
 
   try routes(app)

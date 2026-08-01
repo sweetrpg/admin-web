@@ -14,12 +14,65 @@ struct AppTests {
     }
   }
 
-  @Test("unauthenticated request to root redirects to login")
+  @Test("unauthenticated request to root redirects to auth-web's login")
   func unauthenticatedRedirectsToLogin() async throws {
     try await withApp(configure: configure) { app in
       try await app.testing().test(.GET, "/") { res in
         #expect(res.status == .seeOther)
-        #expect(res.headers.first(name: .location) == "/login")
+        #expect(res.headers.first(name: .location) == "/auth/login?return_to=/")
+      }
+    }
+  }
+
+  @Test(
+    "a request with a session cookie but no reachable shared-session Redis still redirects to login"
+  )
+  func failsOpenWhenSharedSessionRedisUnreachable() async throws {
+    try await withApp(configure: configure) { app in
+      try await app.testing().test(
+        .GET, "/",
+        beforeRequest: { req in
+          req.headers.add(name: .cookie, value: "\(sharedSessionCookieName)=some-session-id")
+        }
+      ) { res in
+        #expect(res.status == .seeOther)
+        #expect(res.headers.first(name: .location) == "/auth/login?return_to=/")
+      }
+    }
+  }
+
+  // Renders the real Leaf template directly (bypassing AuthRequiredMiddleware and users-api
+  // entirely, same as catalog-web's equivalent header-render test) to confirm the roles/deny
+  // entries markup and per-row remove forms interpolate correctly.
+
+  @Test("users list renders roles, deny entries, and remove forms")
+  func usersListRendersRolesAndDenyEntries() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-users") { req async throws -> View in
+        let user = UserSummary(
+          id: "abc123", email: "alice@example.com", roles: ["user", "admin"],
+          deniedServices: ["catalog"])
+        return try await req.view.render(
+          "users/list",
+          UsersListContext(
+            users: [LeafUserSummary(user)],
+            isEmpty: false,
+            allRoles: UsersController.allRoles,
+            user: nil,
+            meta: PageMeta(req)
+          ))
+      }
+      try await app.testing().test(.GET, "test-users") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("alice@example.com"))
+        #expect(body.contains(#"action="/users/abc123/roles/admin/remove""#))
+        #expect(body.contains(#"action="/users/abc123/deny-entries/catalog/remove""#))
+        // "admin" and "user" are both already assigned - only the remaining roles should
+        // appear as add-role options.
+        #expect(!body.contains(#"<option value="admin">"#))
+        #expect(body.contains(#"<option value="editor">"#))
       }
     }
   }

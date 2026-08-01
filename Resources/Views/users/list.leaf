@@ -1,0 +1,61 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">Manage</span>
+			<h2>Users</h2>
+		</section>
+
+		#if(isEmpty):
+			<p class="empty-state">No users yet.</p>
+		#endif
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Email</th>
+					<th>Roles</th>
+					<th>Denied services</th>
+				</tr>
+			</thead>
+			<tbody>
+				#for(u in users):
+					<tr>
+						<td>#(u.email)</td>
+						<td>
+							#for(role in u.roles):
+								<span class="tag">#(role)
+									<form action="#(meta.basePath)/users/#(u.id)/roles/#(role)/remove" method="post" style="display:inline">
+										<button type="submit" class="btn btn-ghost btn-icon" aria-label="Remove #(role) role">&times;</button>
+									</form>
+								</span>
+							#endfor
+							#if(!u.availableRoles.isEmpty):
+								<form action="#(meta.basePath)/users/#(u.id)/roles" method="post" style="display:inline-block">
+									<select name="role">
+										#for(role in u.availableRoles):
+											<option value="#(role)">#(role)</option>
+										#endfor
+									</select>
+									<button type="submit" class="btn btn-ghost">Add role</button>
+								</form>
+							#endif
+						</td>
+						<td>
+							#for(service in u.deniedServices):
+								<span class="tag tag-critical">#(service)
+									<form action="#(meta.basePath)/users/#(u.id)/deny-entries/#(service)/remove" method="post" style="display:inline">
+										<button type="submit" class="btn btn-ghost btn-icon" aria-label="Remove deny entry for #(service)">&times;</button>
+									</form>
+								</span>
+							#endfor
+							<form action="#(meta.basePath)/users/#(u.id)/deny-entries" method="post" style="display:inline-block">
+								<input type="text" name="service" placeholder="service name" required>
+								<button type="submit" class="btn btn-ghost">Deny service</button>
+							</form>
+						</td>
+					</tr>
+				#endfor
+			</tbody>
+		</table>
+	#endexport
+#endextend

@@ -22,7 +22,7 @@ struct BannerController: RouteCollection {
       ListContext(
         banners: sorted.map(LeafBanner.init),
         isEmpty: sorted.isEmpty,
-        user: req.currentUser.map(LeafUser.init),
+        user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
   }
@@ -37,7 +37,7 @@ struct BannerController: RouteCollection {
         banner: nil,
         scopeTypes: BannerScopeType.allCases.map(\.rawValue),
         severities: BannerSeverity.allCases.map(\.rawValue),
-        user: req.currentUser.map(LeafUser.init),
+        user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
   }
@@ -57,7 +57,7 @@ struct BannerController: RouteCollection {
         banner: LeafBannerForm(banner),
         scopeTypes: BannerScopeType.allCases.map(\.rawValue),
         severities: BannerSeverity.allCases.map(\.rawValue),
-        user: req.currentUser.map(LeafUser.init),
+        user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
   }
@@ -190,7 +190,8 @@ struct LeafBanner: Content {
   init(_ banner: Banner) {
     self.id = banner.id
     self.scopeLabel =
-      banner.scopeType == .platform ? "platform" : "\(banner.scopeType.rawValue):\(banner.scopeValue)"
+      banner.scopeType == .platform
+      ? "platform" : "\(banner.scopeType.rawValue):\(banner.scopeValue)"
     self.severity = banner.severity.rawValue
     self.message = banner.message
     self.status = banner.status().rawValue

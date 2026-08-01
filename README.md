@@ -9,9 +9,10 @@
 [![Swift](https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white)
 
 Server-rendered Vapor (Swift) frontend for managing SweetRPG platform banner messages: create,
-edit, immediately expire, and delete banners shown across the other frontends. Auth0-gated -
-every route requires a valid session. Talks to
-[admin-api](https://github.com/sweetrpg/admin-api) server-to-server, following the same
+edit, immediately expire, and delete banners shown across the other frontends. Every route
+requires a session with the `admin` role - the shared session
+[auth-web](https://github.com/sweetrpg/auth-web) establishes, not a login flow of this app's own.
+Talks to [admin-api](https://github.com/sweetrpg/admin-api) server-to-server, following the same
 architecture as [catalog-web](https://github.com/sweetrpg/catalog-web) (this repo's structural
 model) - see that repo's `AGENTS.md` for the path-prefix-behind-Traefik pattern this app also
 follows.

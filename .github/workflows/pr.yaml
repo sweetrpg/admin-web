@@ -14,4 +14,8 @@ jobs:
     uses: sweetrpg/github-actions/.github/workflows/swift-ci.yaml@master
     with:
       publish-coverage: false
+      # Unconstrained dependency resolution pulls in swift-log/swift-nio releases requiring
+      # newer swift-tools-version than the workflow's "6.0" default toolchain - see the note
+      # on the `ci` job in ci.yaml.
+      swift-version: "6.2"
     secrets: inherit
