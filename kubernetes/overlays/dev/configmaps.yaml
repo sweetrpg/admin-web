@@ -17,9 +17,7 @@ data:
   REDIS_DB: "2"
   # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
-  # users-api doesn't have deployment manifests yet (platform's add-user-api-authn-authz
-  # change, task group 12) - this is the expected in-cluster DNS name once it does.
-  USERS_API_URL: http://api-v1.sweetrpg-user.svc.cluster.local:8000
+  USERS_API_URL: http://api-v1.sweetrpg-user.svc.cluster.local:8080
   # Traefik strips /admin before the request reaches this app (see middlewares.yaml), so the
   # app's own routes are unprefixed - but every link/form/redirect it generates needs to add
   # /admin back so the *next* browser request round-trips through the ingress correctly. See
