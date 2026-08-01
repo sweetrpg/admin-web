@@ -1,4 +1,18 @@
 
+## 0.1.0 - 2026-08-01
+
+### Added
+- Scaffold admin-web Vapor frontend for banner message management
+- Migrate to auth-web's shared session, require admin role
+- Add the role/service-access management UI
+- Send acting admin's sub to users-api for audit logging
+
+
+### Fixed
+- Point dev overlay at latest image tag (#4)
+
+
+
 ## Unreleased
 
 ### Added
