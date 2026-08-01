@@ -1,4 +1,15 @@
 
+## 0.2.0 - 2026-08-01
+
+### Added
+- Send internal-service write auth headers to admin-api (#10)
+
+
+### Documentation
+- Correct users-api's port to 8080 in overlay comments
+
+
+
 ## 0.1.0 - 2026-08-01
 
 ### Added
