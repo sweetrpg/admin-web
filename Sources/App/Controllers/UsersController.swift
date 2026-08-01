@@ -37,7 +37,8 @@ struct UsersController: RouteCollection {
     guard let userID = req.parameters.get("userID") else { throw Abort(.badRequest) }
     struct RoleForm: Content { let role: String }
     let form = try req.content.decode(RoleForm.self)
-    try await req.usersAPI.addRole(userID: userID, role: form.role)
+    let actingUserSub = try await requireActingUserSub(req)
+    try await req.usersAPI.addRole(userID: userID, role: form.role, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/users")
   }
 
@@ -46,7 +47,8 @@ struct UsersController: RouteCollection {
     guard let userID = req.parameters.get("userID"), let role = req.parameters.get("role") else {
       throw Abort(.badRequest)
     }
-    try await req.usersAPI.removeRole(userID: userID, role: role)
+    let actingUserSub = try await requireActingUserSub(req)
+    try await req.usersAPI.removeRole(userID: userID, role: role, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/users")
   }
 
@@ -55,7 +57,9 @@ struct UsersController: RouteCollection {
     guard let userID = req.parameters.get("userID") else { throw Abort(.badRequest) }
     struct DenyEntryForm: Content { let service: String }
     let form = try req.content.decode(DenyEntryForm.self)
-    try await req.usersAPI.addDenyEntry(userID: userID, service: form.service)
+    let actingUserSub = try await requireActingUserSub(req)
+    try await req.usersAPI.addDenyEntry(
+      userID: userID, service: form.service, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/users")
   }
 
@@ -65,8 +69,21 @@ struct UsersController: RouteCollection {
     else {
       throw Abort(.badRequest)
     }
-    try await req.usersAPI.removeDenyEntry(userID: userID, service: service)
+    let actingUserSub = try await requireActingUserSub(req)
+    try await req.usersAPI.removeDenyEntry(
+      userID: userID, service: service, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/users")
+  }
+
+  /// Every mutating route needs the acting admin's `sub` to pass to `users-api` for its audit
+  /// log. This should never actually be nil here - `AuthRequiredMiddleware` already required a
+  /// valid `admin` session to reach this handler at all - but fail loudly rather than silently
+  /// send an empty/garbage value `users-api` would otherwise have to guard against itself.
+  private func requireActingUserSub(_ req: Request) async throws -> String {
+    guard let sub = (await req.currentUser)?.sub else {
+      throw Abort(.internalServerError, reason: "No acting user session found")
+    }
+    return sub
   }
 }
 
