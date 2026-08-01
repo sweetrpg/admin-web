@@ -42,6 +42,8 @@ spec:
                             name: web-env
                       - secretRef:
                             name: web-users-api
+                      - secretRef:
+                            name: web-admin-api
                   ports:
                       - containerPort: 8080
                         name: http
