@@ -65,7 +65,8 @@ struct BannerController: RouteCollection {
   @Sendable
   func create(req: Request) async throws -> Response {
     let input = try Self.decodeInput(req)
-    _ = try await req.adminAPI.create(input)
+    let actingUserSub = try await requireActingUserSub(req)
+    _ = try await req.adminAPI.create(input, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/")
   }
 
@@ -73,7 +74,8 @@ struct BannerController: RouteCollection {
   func update(req: Request) async throws -> Response {
     guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
     let input = try Self.decodeInput(req)
-    _ = try await req.adminAPI.update(id: bannerID, input)
+    let actingUserSub = try await requireActingUserSub(req)
+    _ = try await req.adminAPI.update(id: bannerID, input, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/")
   }
 
@@ -84,15 +86,29 @@ struct BannerController: RouteCollection {
     guard let banner = banners.first(where: { $0.id == bannerID }) else {
       throw Abort(.notFound)
     }
-    _ = try await req.adminAPI.expireNow(banner)
+    let actingUserSub = try await requireActingUserSub(req)
+    _ = try await req.adminAPI.expireNow(banner, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/")
   }
 
   @Sendable
   func delete(req: Request) async throws -> Response {
     guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
-    try await req.adminAPI.delete(id: bannerID)
+    let actingUserSub = try await requireActingUserSub(req)
+    try await req.adminAPI.delete(id: bannerID, actingUserSub: actingUserSub)
     return req.redirectLocal(to: "/")
+  }
+
+  /// Every mutating route needs the acting admin's `sub` to pass to `admin-api` for its audit
+  /// log. This should never actually be nil here - `AuthRequiredMiddleware` already required a
+  /// valid `admin` session to reach this handler at all - but fail loudly rather than silently
+  /// send an empty/garbage value `admin-api` would otherwise have to guard against itself. Same
+  /// pattern as `UsersController.requireActingUserSub`.
+  private func requireActingUserSub(_ req: Request) async throws -> String {
+    guard let sub = (await req.currentUser)?.sub else {
+      throw Abort(.internalServerError, reason: "No acting user session found")
+    }
+    return sub
   }
 
   /// Server-side mirror of the form's client-side validation - `expires_at` is required per the

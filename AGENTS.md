@@ -25,6 +25,9 @@ catalog-web (no CORS concern for server-to-server calls).
 ### Backend dependencies
 
 - **admin-api**: banner messages - `POST/GET/PUT/DELETE /banners`. See `AdminAPIClient.swift`.
+  Write calls (`POST`/`PUT`/`DELETE`) are authenticated the same way as `users-api` below - a
+  shared `X-Internal-Service-Token` (`ADMIN_API_INTERNAL_SERVICE_TOKEN`) plus `X-Acting-User-Sub`
+  for audit attribution; `GET /banners` needs neither.
 - **users-api**: user roles and per-service deny entries - `RolesController`'s `/api/admin/*`
   routes, called via `UsersAPIClient.swift`. Authenticated with a shared
   `X-Internal-Service-Token` (`USERS_API_INTERNAL_SERVICE_TOKEN`), not an Auth0 bearer token -
@@ -102,3 +105,5 @@ Without `ADMIN_API_URL`/`USERS_API_URL` set, calls default to in-cluster DNS nam
 resolve outside the cluster - set them to reachable endpoints for local development.
 `USERS_API_INTERNAL_SERVICE_TOKEN` also needs to match `users-api`'s own
 `INTERNAL_SERVICE_TOKEN`, or every users-api call fails closed with a 500.
+`ADMIN_API_INTERNAL_SERVICE_TOKEN` similarly needs to match `admin-api`'s own
+`INTERNAL_SERVICE_TOKEN`, or every banner write fails closed with a 500.
