@@ -1,10 +1,11 @@
 <nav class="nav">
 	<div class="nav-brand">
 		<a href="#(meta.rootURL)"><img src="#(meta.sharedAssetsURL)/static/logo.png" alt="SweetRPG" class="nav-logo"></a>
-		<a href="#(meta.basePath)/">Banner Admin</a>
+		<a href="#(meta.basePath)/">SweetRPG Admin</a>
 	</div>
 	<a href="#(meta.basePath)/">Banners</a>
 	<a href="#(meta.basePath)/banners/new">New Banner</a>
+	<a href="#(meta.basePath)/users">Users</a>
 	<div class="nav-spacer"></div>
 	#if(user):
 		<span class="nav-user">#(user.name)</span>

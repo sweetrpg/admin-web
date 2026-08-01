@@ -6,6 +6,7 @@ namespace: sweetrpg-admin
 resources:
   - ../../base
   - configmaps.yaml
+  - secrets.yaml
   - ingress.yaml
   - middlewares.yaml
 

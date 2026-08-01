@@ -5,27 +5,30 @@ working in this repository.
 
 ## About This Project
 
-`admin-web` is a server-rendered Vapor (Swift) frontend for managing SweetRPG platform banner
-messages - create, edit, immediately expire, and delete banners that other frontends (main-web,
-catalog-web, ...) display. It is modeled structurally on `catalog-web`
+`admin-web` is a server-rendered Vapor (Swift) frontend for platform-wide admin concerns:
+banner messages (create, edit, immediately expire, delete - shown across `main-web`,
+`catalog-web`, ...) and, per platform's `add-user-api-authn-authz` change, the `admin`-gated
+user role/service-access management UI (`UsersController.swift`) - not a separate frontend, see
+that change's design.md for why both live here. It is modeled structurally on `catalog-web`
 (`sweetrpg/catalog-web`) - same path-prefix-behind-Traefik architecture, same read-only
 shared-session pattern - but is intentionally smaller: no Prometheus metrics, distributed
 tracing, Sentry reporting, CORS middleware, or rate limiting. Those exist in catalog-web because
 it's a public-facing, higher-traffic reader surface; this app is an internal tool with a handful
 of authenticated operators, so that instrumentation would be unused complexity rather than a
 baseline worth carrying forward unconditionally. Add any of it back if this app's operational
-needs actually justify it, not by default. As of platform's `add-user-api-authn-authz` change,
-this app is also slated to host the `admin`-gated role/service-access management UI alongside
-banner management (not a separate frontend) - see that change's design.md.
+needs actually justify it, not by default.
 
 Pages are rendered server-side (Leaf templates in `Resources/Views/`) from data fetched
-server-to-server from `admin-api` - not via browser-side `fetch`, same rationale as catalog-web
-(no CORS concern for server-to-server calls).
+server-to-server from `admin-api`/`users-api` - not via browser-side `fetch`, same rationale as
+catalog-web (no CORS concern for server-to-server calls).
 
-### Backend dependency
+### Backend dependencies
 
-- **admin-api**: the only backend this app talks to - `POST/GET/PUT/DELETE /banners`. See
-  `AdminAPIClient.swift`.
+- **admin-api**: banner messages - `POST/GET/PUT/DELETE /banners`. See `AdminAPIClient.swift`.
+- **users-api**: user roles and per-service deny entries - `RolesController`'s `/api/admin/*`
+  routes, called via `UsersAPIClient.swift`. Authenticated with a shared
+  `X-Internal-Service-Token` (`USERS_API_INTERNAL_SERVICE_TOKEN`), not an Auth0 bearer token -
+  this app never holds one of its own (see "Login and the shared session" below).
 
 ### Known gap: no documented admin-listing endpoint
 
@@ -95,5 +98,7 @@ swift format lint --recursive --strict Sources Tests
 ```
 
 `swift run` serves on `:8080`. Without `REDIS_HOST` set, every visitor reads as logged-out.
-Without `ADMIN_API_URL` set, calls default to an in-cluster DNS name that won't resolve outside
-the cluster - set it to a reachable admin-api endpoint for local development.
+Without `ADMIN_API_URL`/`USERS_API_URL` set, calls default to in-cluster DNS names that won't
+resolve outside the cluster - set them to reachable endpoints for local development.
+`USERS_API_INTERNAL_SERVICE_TOKEN` also needs to match `users-api`'s own
+`INTERNAL_SERVICE_TOKEN`, or every users-api call fails closed with a 500.

@@ -13,8 +13,9 @@ data:
   REDIS_HOST: redis.sweetrpg-support.svc.cluster.local
   REDIS_PORT: "6379"
   REDIS_DB: "2"
-  # Server-to-server backend URL, called directly Service-to-Service - no ingress in the path.
+  # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
+  USERS_API_URL: http://api-v1.sweetrpg-user.svc.cluster.local:8000
   # Traefik strips /admin before the request reaches this app (see middlewares.yaml), same as
   # the dev overlay - every link/redirect this app generates needs the prefix added back.
   INGRESS_BASE_PATH: /admin
