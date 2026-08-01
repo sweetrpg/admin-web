@@ -8,12 +8,18 @@ metadata:
 data:
   ENV: dev
   PORT: "8080"
-  # No REDIS_HOST yet - this app runs a single replica in dev (see deployment.yaml, no
-  # `replicas:` override), so in-memory sessions are fine for now. Wire up a shared Redis
-  # instance (see catalog-web's overlays/dev/configmaps.yaml for the pattern) before scaling
-  # this beyond one replica, or sessions will bounce between pods.
-  # Server-to-server backend URL, called directly Service-to-Service - no ingress in the path.
+  # Shared "redis" instance in sweetrpg-support - auth-web's session store this app reads
+  # (never writes). Unset means every visitor reads as logged-out, not a startup failure. See
+  # docs/frontend-conventions.md's "Shared sweetrpg-support Redis instance" section
+  # (sweetrpg/platform) for the full DB-index registry.
+  REDIS_HOST: redis.sweetrpg-support.svc.cluster.local
+  REDIS_PORT: "6379"
+  REDIS_DB: "2"
+  # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
+  # users-api doesn't have deployment manifests yet (platform's add-user-api-authn-authz
+  # change, task group 12) - this is the expected in-cluster DNS name once it does.
+  USERS_API_URL: http://api-v1.sweetrpg-user.svc.cluster.local:8000
   # Traefik strips /admin before the request reaches this app (see middlewares.yaml), so the
   # app's own routes are unprefixed - but every link/form/redirect it generates needs to add
   # /admin back so the *next* browser request round-trips through the ingress correctly. See
@@ -27,4 +33,3 @@ data:
   SHARED_ASSETS_URL: https://dev.sweetrpg.com/assets
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
-  AUTH0_CALLBACK_URL: https://dev.sweetrpg.com/admin/auth/callback
