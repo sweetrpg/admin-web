@@ -65,13 +65,12 @@ Auth0 registration. "Log in"/"Log out" links (`meta.loginURL`/`meta.logoutURL`, 
 at `auth-web` directly instead.
 
 `Request.currentUser` (`SessionUserAccess.swift`) reads the shared `sweetrpg_session` cookie
-`auth-web` writes, from the shared `redis.sweetrpg-support` instance auth-web also uses, on its
-own DB index - see `sweetrpg/platform`'s `docs/frontend-conventions.md` for the full DB-index
-registry. It deliberately does not go through Vapor's `Session`/`SessionsMiddleware` - touching
-`req.session` on every request would create and write back a brand-new session for every
-anonymous visitor,
-which is exactly the write this read-only consumer must never make. Fails open (`nil`) on every
-error path.
+`auth-web` writes, from `auth-web`'s own dedicated `redis.sweetrpg-auth` instance - see
+`sweetrpg/platform`'s `docs/frontend-conventions.md` for the full registry of per-namespace
+Redis instances. It deliberately does not go through Vapor's `Session`/`SessionsMiddleware` -
+touching `req.session` on every request would create and write back a brand-new session for
+every anonymous visitor, which is exactly the write this read-only consumer must never make.
+Fails open (`nil`) on every error path.
 
 ### Trust boundary
 
