@@ -76,4 +76,34 @@ struct AppTests {
       }
     }
   }
+
+  @Test("maintenance-modes list flags an enabled record and an unconfigured scope")
+  func maintenanceModesListRendersConfiguredAndUnconfiguredRows() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-maintenance-modes") { req async throws -> View in
+        let configured = LeafMaintenanceScopeRow(
+          scopeType: .service, scopeValue: "catalog", displayName: "catalog",
+          record: MaintenanceMode(
+            id: "mm1", scopeType: .service, scopeValue: "catalog", enabled: true,
+            startsAt: Date(timeIntervalSince1970: 0), endsAt: nil,
+            label: "Catalog down", description: "Migrating data", createdAt: nil,
+            updatedAt: nil))
+        let unconfigured = LeafMaintenanceScopeRow(
+          scopeType: .service, scopeValue: "assets", displayName: "assets", record: nil)
+        return try await req.view.render(
+          "maintenance-modes/list",
+          MaintenanceModeListContext(
+            rows: [configured, unconfigured], user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-maintenance-modes") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("Catalog down"))
+        #expect(body.contains(#"class="tag tag-critical">Maintenance"#))
+        #expect(body.contains("Not configured"))
+        #expect(body.contains(#"action="/maintenance-modes/mm1/toggle""#))
+      }
+    }
+  }
 }
