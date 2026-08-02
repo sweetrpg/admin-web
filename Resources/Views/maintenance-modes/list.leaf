@@ -1,0 +1,58 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">Manage</span>
+			<h2>Maintenance Modes</h2>
+		</section>
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Scope</th>
+					<th>Status</th>
+					<th>Label</th>
+					<th>Starts</th>
+					<th>Ends</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				#for(row in rows):
+					<tr>
+						<td>#(row.displayName)</td>
+						<td>
+							#if(row.configured):
+								#if(row.enabled):
+									<span class="tag tag-critical">Maintenance</span>
+								#else:
+									<span class="tag tag-outline">Off</span>
+								#endif
+								#if(row.isStale):
+									<span class="tag tag-status-expired">Past end date</span>
+								#endif
+							#else:
+								<span class="empty-state">Not configured</span>
+							#endif
+						</td>
+						<td>#(row.label)</td>
+						<td>#(row.startsAtLabel)</td>
+						<td>#(row.endsAtLabel)</td>
+						<td class="table-actions">
+							<a class="btn btn-ghost" href="#(meta.basePath)/maintenance-modes/edit?scope_type=#(row.scopeType)&scope_value=#(row.scopeValue)">
+								#if(row.configured): Edit #else: Configure #endif
+							</a>
+							#if(row.configured):
+								<form action="#(meta.basePath)/maintenance-modes/#(row.id)/toggle" method="post" style="display:inline">
+									<button type="submit" class="btn btn-ghost">#if(row.enabled): Disable #else: Enable #endif</button>
+								</form>
+								<form action="#(meta.basePath)/maintenance-modes/#(row.id)/delete" method="post" style="display:inline">
+									<button type="submit" class="btn btn-ghost">Delete</button>
+								</form>
+							#endif
+						</td>
+					</tr>
+				#endfor
+			</tbody>
+		</table>
+	#endexport
+#endextend

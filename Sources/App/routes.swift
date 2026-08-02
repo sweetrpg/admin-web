@@ -7,5 +7,6 @@ func routes(_ app: Application) throws {
   }
 
   try app.register(collection: BannerController())
+  try app.register(collection: MaintenanceModeController())
   try app.register(collection: UsersController())
 }
