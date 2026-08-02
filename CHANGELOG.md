@@ -1,4 +1,17 @@
 
+## 0.3.0 - 2026-08-02
+
+### Added
+- Send internal-service write auth headers to admin-api (#10)
+- Add maintenance-mode admin page
+- Add guarded Sentry error reporting
+
+
+### Documentation
+- Correct users-api's port to 8080 in overlay comments
+
+
+
 ## 0.2.0 - 2026-08-01
 
 ### Added

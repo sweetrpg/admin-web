@@ -152,6 +152,69 @@ struct AdminAPIClient {
         response.status, reason: "admin-api request failed with status \(response.status.code)")
     }
   }
+
+  // MARK: - Maintenance modes
+
+  /// `GET /maintenance-modes` returns every record regardless of scope or enabled state -
+  /// unlike banners, this has a documented admin-listing shape from the start (see
+  /// `server/maintenance_modes.go` in admin-api), no `include_inactive` workaround needed.
+  func listAllMaintenanceModes() async throws -> [MaintenanceMode] {
+    let response = try await client.get(URI(string: baseURL + "/maintenance-modes"))
+    try Self.throwOnFailure(response)
+    return try response.content.decode([MaintenanceMode].self)
+  }
+
+  /// Creates a record for `input`'s scope, or updates the existing record for that scope in
+  /// place if one already exists - admin-api enforces at most one record per scope.
+  func upsertMaintenanceMode(_ input: MaintenanceModeInput, actingUserSub: String) async throws
+    -> MaintenanceMode
+  {
+    let response = try await post(
+      URI(string: baseURL + "/maintenance-modes"), actingUserSub: actingUserSub
+    ) { req in
+      try req.content.encode(input)
+    }
+    try Self.throwOnFailure(response)
+    return try response.content.decode(MaintenanceMode.self)
+  }
+
+  func updateMaintenanceMode(
+    id: String, _ input: MaintenanceModeInput, actingUserSub: String
+  ) async throws -> MaintenanceMode {
+    let response = try await put(
+      URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub
+    ) { req in
+      try req.content.encode(input)
+    }
+    try Self.throwOnFailure(response)
+    return try response.content.decode(MaintenanceMode.self)
+  }
+
+  /// Flips `enabled` without touching the rest of the record - the "direct enable/disable
+  /// toggle" from tasks.md 2.4, so an admin doesn't have to open the full edit form just to
+  /// flip the gate.
+  func setMaintenanceModeEnabled(
+    _ mode: MaintenanceMode, enabled: Bool, actingUserSub: String
+  ) async throws -> MaintenanceMode {
+    try await updateMaintenanceMode(
+      id: mode.id,
+      MaintenanceModeInput(
+        scopeType: mode.scopeType,
+        scopeValue: mode.scopeValue,
+        enabled: enabled,
+        startsAt: mode.startsAt,
+        endsAt: mode.endsAt,
+        label: mode.label,
+        description: mode.description
+      ),
+      actingUserSub: actingUserSub)
+  }
+
+  func deleteMaintenanceMode(id: String, actingUserSub: String) async throws {
+    let response = try await delete(
+      URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub)
+    try Self.throwOnFailure(response)
+  }
 }
 
 extension Request {
