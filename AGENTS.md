@@ -12,11 +12,13 @@ user role/service-access management UI (`UsersController.swift`) - not a separat
 that change's design.md for why both live here. It is modeled structurally on `catalog-web`
 (`sweetrpg/catalog-web`) - same path-prefix-behind-Traefik architecture, same read-only
 shared-session pattern - but is intentionally smaller: no Prometheus metrics, distributed
-tracing, Sentry reporting, CORS middleware, or rate limiting. Those exist in catalog-web because
-it's a public-facing, higher-traffic reader surface; this app is an internal tool with a handful
-of authenticated operators, so that instrumentation would be unused complexity rather than a
+tracing, CORS middleware, or rate limiting. Those exist in catalog-web because it's a
+public-facing, higher-traffic reader surface; this app is an internal tool with a handful of
+authenticated operators, so that instrumentation would be unused complexity rather than a
 baseline worth carrying forward unconditionally. Add any of it back if this app's operational
-needs actually justify it, not by default.
+needs actually justify it, not by default. Sentry error reporting is the one exception, added
+platform-wide across every application regardless of traffic profile - see
+`SentryReporter.swift`/`SentryMiddleware.swift`, ported unchanged from catalog-web's own.
 
 Pages are rendered server-side (Leaf templates in `Resources/Views/`) from data fetched
 server-to-server from `admin-api`/`users-api` - not via browser-side `fetch`, same rationale as
