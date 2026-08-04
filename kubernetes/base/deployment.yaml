@@ -44,6 +44,8 @@ spec:
                             name: web-users-api
                       - secretRef:
                             name: web-admin-api
+                      - secretRef:
+                            name: web-shared-session
                   ports:
                       - containerPort: 8080
                         name: http
