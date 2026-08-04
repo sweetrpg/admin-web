@@ -53,11 +53,46 @@ struct AdminAPIClient {
     return try response.content.decode([Banner].self)
   }
 
+  /// admin-api's `POST /banners` requires `created_by` in the body (`createBannerRequest`,
+  /// `binding:"required"`) - `BannerInput` deliberately has no such field (it's also the
+  /// `PUT` payload shape, which admin-api's `updateBannerRequest` does not accept `created_by`
+  /// on, since it's immutable once set). Wrapping `input`'s fields plus `createdBy` here, rather
+  /// than adding an unused field to `BannerInput` for every other caller, keeps the create-only
+  /// requirement local to the one call site that actually needs it.
+  private struct CreateBannerRequestBody: Content {
+    var scopeType: BannerScopeType
+    var scopeValue: String
+    var severity: BannerSeverity
+    var message: String
+    var startsAt: Date?
+    var expiresAt: Date
+    var createdBy: String
+
+    enum CodingKeys: String, CodingKey {
+      case scopeType = "scope_type"
+      case scopeValue = "scope_value"
+      case severity
+      case message
+      case startsAt = "starts_at"
+      case expiresAt = "expires_at"
+      case createdBy = "created_by"
+    }
+  }
+
   func create(_ input: BannerInput, actingUserSub: String) async throws -> Banner {
+    let body = CreateBannerRequestBody(
+      scopeType: input.scopeType,
+      scopeValue: input.scopeValue,
+      severity: input.severity,
+      message: input.message,
+      startsAt: input.startsAt,
+      expiresAt: input.expiresAt,
+      createdBy: actingUserSub
+    )
     let response = try await post(
       URI(string: baseURL + "/banners"), actingUserSub: actingUserSub
     ) { req in
-      try req.content.encode(input)
+      try req.content.encode(body)
     }
     try Self.throwOnFailure(response)
     return try response.content.decode(Banner.self)
