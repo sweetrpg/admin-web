@@ -1,4 +1,12 @@
 
+## 0.3.1 - 2026-08-04
+
+### Fixed
+- Authenticate to the shared session Redis
+- Send created_by when creating a banner
+
+
+
 ## 0.3.0 - 2026-08-02
 
 ### Added
