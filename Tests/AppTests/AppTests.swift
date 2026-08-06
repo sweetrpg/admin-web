@@ -50,13 +50,13 @@ struct AppTests {
     try await withApp { app in
       app.views.use(.leaf)
       app.get("test-users") { req async throws -> View in
-        let user = UserSummary(
-          id: "abc123", email: "alice@example.com", roles: ["user", "admin"],
+        let summary = LeafUserSummary(
+          subject: "abc123", email: "alice@example.com", roles: ["user", "admin"],
           deniedServices: ["catalog"])
         return try await req.view.render(
           "users/list",
           UsersListContext(
-            users: [LeafUserSummary(user)],
+            users: [summary],
             isEmpty: false,
             allRoles: UsersController.allRoles,
             user: nil,

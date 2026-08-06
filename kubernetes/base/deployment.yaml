@@ -43,6 +43,8 @@ spec:
                       - secretRef:
                             name: web-users-api
                       - secretRef:
+                            name: web-auth-api
+                      - secretRef:
                             name: web-admin-api
                       - secretRef:
                             name: web-shared-session

@@ -7,9 +7,11 @@ working in this repository.
 
 `admin-web` is a server-rendered Vapor (Swift) frontend for platform-wide admin concerns:
 banner messages (create, edit, immediately expire, delete - shown across `main-web`,
-`catalog-web`, ...) and, per platform's `add-user-api-authn-authz` change, the `admin`-gated
-user role/service-access management UI (`UsersController.swift`) - not a separate frontend, see
-that change's design.md for why both live here. It is modeled structurally on `catalog-web`
+`catalog-web`, ...) and the `admin`-gated user role/service-access management UI
+(`UsersController.swift`) - not a separate frontend, see `add-user-api-authn-authz`'s design.md
+for why both live here. Since `split-authz-into-auth-api`, that management UI composes two
+backends (`users-api` for identity, `auth-api` for roles/deny entries) instead of one - see
+"Backend dependencies" below. It is modeled structurally on `catalog-web`
 (`sweetrpg/catalog-web`) - same path-prefix-behind-Traefik architecture, same read-only
 shared-session pattern - but is intentionally smaller: no Prometheus metrics, distributed
 tracing, CORS middleware, or rate limiting. Those exist in catalog-web because it's a
@@ -30,10 +32,17 @@ catalog-web (no CORS concern for server-to-server calls).
   Write calls (`POST`/`PUT`/`DELETE`) are authenticated the same way as `users-api` below - a
   shared `X-Internal-Service-Token` (`ADMIN_API_INTERNAL_SERVICE_TOKEN`) plus `X-Acting-User-Sub`
   for audit attribution; `GET /banners` needs neither.
-- **users-api**: user roles and per-service deny entries - `RolesController`'s `/api/admin/*`
-  routes, called via `UsersAPIClient.swift`. Authenticated with a shared
+- **users-api**: minimal user identity listing (id/email) - `AdminUsersController`'s
+  `GET /api/admin/users`, called via `UsersAPIClient.swift`. Authenticated with a shared
   `X-Internal-Service-Token` (`USERS_API_INTERNAL_SERVICE_TOKEN`), not an Auth0 bearer token -
   this app never holds one of its own (see "Login and the shared session" below).
+- **auth-api**: user roles and per-service deny entries, keyed by Auth0 subject -
+  `RolesController`'s `/api/admin/roles`/`/api/admin/deny-entries` routes, called via
+  `AuthAPIClient.swift`. Authenticated the same way, with its own distinct
+  `AUTH_API_INTERNAL_SERVICE_TOKEN` (not shared with `USERS_API_INTERNAL_SERVICE_TOKEN`).
+  `UsersController.swift` composes this with `users-api`'s identity listing, joined by subject,
+  since neither service alone has both halves of what the management UI needs to display - see
+  `sweetrpg/platform`'s `split-authz-into-auth-api` change design.md.
 
 ### Known gap: no documented admin-listing endpoint
 
@@ -102,9 +111,11 @@ swift format lint --recursive --strict Sources Tests
 ```
 
 `swift run` serves on `:8080`. Without `REDIS_HOST` set, every visitor reads as logged-out.
-Without `ADMIN_API_URL`/`USERS_API_URL` set, calls default to in-cluster DNS names that won't
-resolve outside the cluster - set them to reachable endpoints for local development.
-`USERS_API_INTERNAL_SERVICE_TOKEN` also needs to match `users-api`'s own
-`INTERNAL_SERVICE_TOKEN`, or every users-api call fails closed with a 500.
-`ADMIN_API_INTERNAL_SERVICE_TOKEN` similarly needs to match `admin-api`'s own
+Without `ADMIN_API_URL`/`USERS_API_URL`/`AUTH_API_URL` set, calls default to in-cluster DNS
+names that won't resolve outside the cluster - set them to reachable endpoints for local
+development. `USERS_API_INTERNAL_SERVICE_TOKEN` needs to match `users-api`'s own
+`INTERNAL_SERVICE_TOKEN`, or the identity listing call fails closed with a 500.
+`AUTH_API_INTERNAL_SERVICE_TOKEN` needs to match `auth-api`'s own `INTERNAL_SERVICE_TOKEN`
+(a distinct secret, not shared with `users-api`'s), or every role/deny-entry call fails closed
+with a 500. `ADMIN_API_INTERNAL_SERVICE_TOKEN` similarly needs to match `admin-api`'s own
 `INTERNAL_SERVICE_TOKEN`, or every banner write fails closed with a 500.
