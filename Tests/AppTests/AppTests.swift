@@ -50,13 +50,13 @@ struct AppTests {
     try await withApp { app in
       app.views.use(.leaf)
       app.get("test-users") { req async throws -> View in
-        let user = UserSummary(
-          id: "abc123", email: "alice@example.com", roles: ["user", "admin"],
+        let summary = LeafUserSummary(
+          subject: "abc123", email: "alice@example.com", roles: ["user", "admin"],
           deniedServices: ["catalog"])
         return try await req.view.render(
           "users/list",
           UsersListContext(
-            users: [LeafUserSummary(user)],
+            users: [summary],
             isEmpty: false,
             allRoles: UsersController.allRoles,
             user: nil,
@@ -101,8 +101,13 @@ struct AppTests {
         let body = res.body.string
         #expect(body.contains("Catalog down"))
         #expect(body.contains(#"class="tag tag-critical">Maintenance"#))
-        #expect(body.contains("Not configured"))
+        #expect(body.contains(#"class="tag tag-outline">Not configured"#))
         #expect(body.contains(#"action="/maintenance-modes/mm1/toggle""#))
+        // Human-friendly label in the visible cell, raw RFC3339 preserved in the tooltip -
+        // regression coverage for the squished-columns/inconsistent-sizing fix and for the
+        // "unreadable timestamp" complaint this replaced.
+        #expect(body.contains("Jan 1, 1970, 12:00 AM UTC"))
+        #expect(body.contains(#"title="1970-01-01T00:00:00Z""#))
       }
     }
   }

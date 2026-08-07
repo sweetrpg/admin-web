@@ -194,6 +194,18 @@ struct MaintenanceModeFormContext: Content {
 
 // MARK: - Leaf view models
 
+/// Human-friendly "Aug 4, 2026, 12:00 AM UTC" rendering, fixed to UTC/en_US_POSIX so output is
+/// deterministic regardless of the server's locale/timezone - the raw RFC3339 value (from
+/// `ISO8601DateFormatter`) still goes in the row's `*Rfc` field for a tooltip, so nothing about
+/// the exact instant is lost, just no longer the only thing shown.
+private let humanDateFormatter: DateFormatter = {
+  let formatter = DateFormatter()
+  formatter.locale = Locale(identifier: "en_US_POSIX")
+  formatter.timeZone = TimeZone(identifier: "UTC")
+  formatter.dateFormat = "MMM d, yyyy, h:mm a 'UTC'"
+  return formatter
+}()
+
 struct LeafMaintenanceScopeRow: Content {
   let scopeType: String
   let scopeValue: String
@@ -204,7 +216,9 @@ struct LeafMaintenanceScopeRow: Content {
   let isStale: Bool
   let label: String
   let startsAtLabel: String
+  let startsAtRfc: String
   let endsAtLabel: String
+  let endsAtRfc: String
 
   init(
     scopeType: MaintenanceScopeType, scopeValue: String, displayName: String,
@@ -218,8 +232,10 @@ struct LeafMaintenanceScopeRow: Content {
     self.enabled = record?.enabled ?? false
     self.isStale = record?.isStale ?? false
     self.label = record?.label ?? ""
-    self.startsAtLabel = record.map { ISO8601DateFormatter().string(from: $0.startsAt) } ?? ""
-    self.endsAtLabel = record?.endsAt.map { ISO8601DateFormatter().string(from: $0) } ?? "\u{2014}"
+    self.startsAtLabel = record.map { humanDateFormatter.string(from: $0.startsAt) } ?? ""
+    self.startsAtRfc = record.map { ISO8601DateFormatter().string(from: $0.startsAt) } ?? ""
+    self.endsAtLabel = record?.endsAt.map { humanDateFormatter.string(from: $0) } ?? "\u{2014}"
+    self.endsAtRfc = record?.endsAt.map { ISO8601DateFormatter().string(from: $0) } ?? ""
   }
 }
 

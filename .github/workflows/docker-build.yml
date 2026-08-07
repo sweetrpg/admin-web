@@ -149,5 +149,5 @@ jobs:
         uses: sweetrpg/github-actions/.github/workflows/argocd-update-deployment.yaml@master
         with:
             image-name: admin-web
-            manifest-path: clusters/dev/admin/services/web.yaml
+            manifest-path: clusters/dev/admin/web.yaml
         secrets: inherit

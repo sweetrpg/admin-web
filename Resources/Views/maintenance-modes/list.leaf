@@ -31,12 +31,12 @@
 									<span class="tag tag-status-expired">Past end date</span>
 								#endif
 							#else:
-								<span class="empty-state">Not configured</span>
+								<span class="tag tag-outline">Not configured</span>
 							#endif
 						</td>
 						<td>#(row.label)</td>
-						<td>#(row.startsAtLabel)</td>
-						<td>#(row.endsAtLabel)</td>
+						<td title="#(row.startsAtRfc)">#(row.startsAtLabel)</td>
+						<td title="#(row.endsAtRfc)">#(row.endsAtLabel)</td>
 						<td class="table-actions">
 							<a class="btn btn-ghost" href="#(meta.basePath)/maintenance-modes/edit?scope_type=#(row.scopeType)&scope_value=#(row.scopeValue)">
 								#if(row.configured): Edit #else: Configure #endif
