@@ -33,10 +33,18 @@ struct AuthAPIClient {
   let baseURL: String
   let internalServiceToken: String?
 
+  /// This request's inbound trace context, if it arrived with one - forwarded on every
+  /// outbound call, never fabricated. Nothing upstream of this app sets `traceparent` yet, so
+  /// this is a no-op today; it activates automatically once frontend-side tracing is
+  /// separately scoped (see sweetrpg/platform's migrate-auth-users-api-to-go change
+  /// design.md).
+  let traceparent: String?
+
   init(request: Request) {
     self.client = request.client
     self.baseURL = request.authAPIConfig.baseURL
     self.internalServiceToken = request.authAPIConfig.internalServiceToken
+    self.traceparent = request.headers.first(name: "traceparent")
   }
 
   /// Bulk lookup for a set of subjects, in one round trip - what `admin-web`'s user list uses
@@ -114,6 +122,7 @@ struct AuthAPIClient {
     let token = try requireToken()
     return try await client.get(uri) { req in
       req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
+      applyTraceparent(&req)
     }
   }
 
@@ -127,6 +136,7 @@ struct AuthAPIClient {
     return try await client.post(uri) { req in
       req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
       req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+      applyTraceparent(&req)
       try beforeSend(&req)
     }
   }
@@ -136,6 +146,13 @@ struct AuthAPIClient {
     return try await client.delete(uri) { req in
       req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
       req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+      applyTraceparent(&req)
+    }
+  }
+
+  private func applyTraceparent(_ req: inout ClientRequest) {
+    if let traceparent {
+      req.headers.replaceOrAdd(name: "traceparent", value: traceparent)
     }
   }
 

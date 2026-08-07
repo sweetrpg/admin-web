@@ -26,10 +26,17 @@ struct UsersAPIClient {
   let baseURL: String
   let internalServiceToken: String?
 
+  /// This request's inbound trace context, if it arrived with one - forwarded on the outbound
+  /// call, never fabricated. Nothing upstream of this app sets `traceparent` yet, so this is a
+  /// no-op today; it activates automatically once frontend-side tracing is separately scoped
+  /// (see sweetrpg/platform's migrate-auth-users-api-to-go change design.md).
+  let traceparent: String?
+
   init(request: Request) {
     self.client = request.client
     self.baseURL = request.usersAPIConfig.baseURL
     self.internalServiceToken = request.usersAPIConfig.internalServiceToken
+    self.traceparent = request.headers.first(name: "traceparent")
   }
 
   func listUsers() async throws -> [UserIdentity] {
@@ -40,6 +47,9 @@ struct UsersAPIClient {
     }
     let response = try await client.get(URI(string: baseURL + "/api/admin/users")) { req in
       req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
+      if let traceparent {
+        req.headers.replaceOrAdd(name: "traceparent", value: traceparent)
+      }
     }
     guard (200..<300).contains(response.status.code) else {
       throw Abort(
