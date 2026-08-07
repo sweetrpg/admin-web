@@ -1,4 +1,17 @@
 
+## 0.4.0 - 2026-08-07
+
+### Added
+- Swap nav logo for theme-aware SVGs
+- Compose users-api identity with auth-api role data
+- Forward inbound traceparent header to auth-api and users-api
+
+
+### Fixed
+- Dark theme, table/form layout, and Leaf whitespace bugs
+
+
+
 ## 0.3.1 - 2026-08-04
 
 ### Fixed
