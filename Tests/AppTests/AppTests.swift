@@ -162,6 +162,28 @@ struct AppTests {
     }
   }
 
+  private struct FooterContext: Content {
+    let meta: PageMeta
+  }
+
+  @Test("footer shows the build hash truncated to 8 chars")
+  func footerShowsTruncatedBuildHash() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-footer") { req async throws -> View in
+        try await req.view.render("partials/footer", FooterContext(meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-footer") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        // BuildInfo.load() falls back to sha "unset" outside a container (no BUILD_INFO_PATH) -
+        // shorter than 8 chars, so this also covers prefix(_:) being a safe no-op on a short
+        // string, same rationale as assets-web's own truncation fix.
+        #expect(body.contains("built unknown / unset"))
+      }
+    }
+  }
+
   @Test("maintenance-mode form renders for an unconfigured scope")
   func maintenanceModeFormRendersForUnconfiguredScope() async throws {
     try await withApp { app in
@@ -202,6 +224,57 @@ struct AppTests {
         #expect(body.contains("Catalog down"))
         #expect(body.contains("Migrating data"))
         #expect(body.contains("checked"))
+      }
+    }
+  }
+
+  private struct HeaderContext: Content {
+    let user: LeafUser?
+    let meta: PageMeta
+  }
+
+  @Test("header renders the avatar menu with identity, gravatar fallback, and user settings link")
+  func headerRendersAvatarMenuForLoggedInUser() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-header") { req async throws -> View in
+        let user = LeafUser(
+          SessionUser(
+            sub: "abc123", name: "Alice Example", email: "alice@example.com", roles: ["admin"]))
+        return try await req.view.render(
+          "partials/header", HeaderContext(user: user, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-header") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains(#"class="avatar-menu-trigger""#))
+        #expect(body.contains(#"class="avatar-menu-name">Alice Example"#))
+        #expect(body.contains(#"class="avatar-menu-email">alice@example.com"#))
+        #expect(body.contains(#"href="/users">User Settings"#))
+        #expect(body.contains(#"action="/auth/logout" method="post""#))
+        // No self-referential "Administration" item - this app already gates entry on the
+        // admin role, unlike catalog-web/main-web where the avatar menu links out to admin-web.
+        #expect(!body.contains("Administration"))
+      }
+    }
+  }
+
+  @Test("header falls back to the mystery-man avatar when logged out")
+  func headerRendersLoggedOutFallback() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-header-logged-out") { req async throws -> View in
+        try await req.view.render(
+          "partials/header", HeaderContext(user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-header-logged-out") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("mystery-man.svg"))
+        #expect(
+          body.contains(
+            #"class="avatar-menu-item" href="/auth/login?return_to=/test-header-logged-out">Log in"#
+          ))
       }
     }
   }

@@ -11,10 +11,34 @@
 	<a href="#(meta.basePath)/maintenance-modes">Maintenance</a>
 	<a href="#(meta.basePath)/users">Users</a>
 	<div class="nav-spacer"></div>
-	#if(user):
-		<span class="nav-user">#(user.name)</span>
-		<form action="#(meta.logoutURL)" method="post"><button type="submit" class="btn btn-ghost">Log Out</button></form>
-	#else:
-		<a class="btn btn-ghost" href="#(meta.loginURL)">Log In</a>
-	#endif
+	<div class="avatar-menu">
+		<button type="button" class="avatar-menu-trigger">
+			#if(user):
+				#if(user.avatarGravatarURL):
+				<img class="avatar-menu-avatar" src="#(user.avatarGravatarURL)" alt="" loading="lazy" onload="this.nextElementSibling.style.display='none'" onerror="this.style.display='none'">
+				#endif
+				<span class="avatar-menu-fallback">#(user.avatarInitial)</span>
+			#else:
+				<img class="avatar-menu-avatar" src="#(meta.sharedAssetsURL)/static/img/mystery-man.svg" alt="">
+			#endif
+		</button>
+		<div class="avatar-menu-panel" hidden>
+			#if(user):
+				<div class="avatar-menu-identity">
+					<span class="avatar-menu-name">#(user.name)</span>
+					#if(user.email):
+					<span class="avatar-menu-email">#(user.email)</span>
+					#endif
+				</div>
+				<hr class="avatar-menu-divider">
+				<a class="avatar-menu-item" href="#(meta.userSettingsURL)">User Settings</a>
+				<hr class="avatar-menu-divider">
+				<form action="#(meta.logoutURL)" method="post" class="avatar-menu-item-form">
+					<button type="submit" class="avatar-menu-item avatar-menu-item-danger">Log out</button>
+				</form>
+			#else:
+				<a class="avatar-menu-item" href="#(meta.loginURL)">Log in</a>
+			#endif
+		</div>
+	</div>
 </nav>

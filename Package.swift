@@ -13,6 +13,8 @@ let package = Package(
         .package(url: "https://github.com/vapor/leaf.git", from: "4.3.0"),
         // 🔴 Redis-backed session storage, so sessions survive across replicas.
         .package(url: "https://github.com/vapor/redis.git", from: "4.10.0"),
+        // 🔒 MD5 for the avatar menu's Gravatar URL - same use as catalog-web's.
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "4.5.1"),
     ],
     targets: [
         .executableTarget(
@@ -21,6 +23,7 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Leaf", package: "leaf"),
                 .product(name: "Redis", package: "redis"),
+                .product(name: "Crypto", package: "swift-crypto"),
             ],
             // Resources/ is shipped as a plain directory next to the built binary (see
             // Dockerfile), not via SwiftPM resource bundling - Vapor's default Leaf resolution
