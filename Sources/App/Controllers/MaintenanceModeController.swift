@@ -68,7 +68,8 @@ struct MaintenanceModeController: RouteCollection {
         displayName: scopeType == .platform ? "Platform (all apps)" : scopeValue,
         scopeType: scopeType.rawValue,
         scopeValue: scopeValue,
-        mode: existing.map(LeafMaintenanceModeForm.init),
+        isEdit: existing != nil,
+        mode: existing.map(LeafMaintenanceModeForm.init) ?? .empty,
         user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
@@ -187,7 +188,8 @@ struct MaintenanceModeFormContext: Content {
   let displayName: String
   let scopeType: String
   let scopeValue: String
-  let mode: LeafMaintenanceModeForm?
+  let isEdit: Bool
+  let mode: LeafMaintenanceModeForm
   let user: LeafUser?
   let meta: PageMeta
 }
@@ -239,12 +241,28 @@ struct LeafMaintenanceScopeRow: Content {
   }
 }
 
+/// Flattened, always-present form field values - defaults resolved here in Swift (`??`) rather
+/// than in the Leaf template. See `LeafBannerForm`'s doc comment: leaf-kit 1.14.3 lexes `??`
+/// but throws `.unknownError("Future feature")` when actually resolving it, so
+/// `maintenance-modes/form.leaf`'s prior `mode?.field ?? ""` usage 500'd on every render.
 struct LeafMaintenanceModeForm: Content {
   let enabled: Bool
   let startsAt: String
   let endsAt: String
   let label: String
   let description: String
+
+  static let empty = LeafMaintenanceModeForm(
+    enabled: false, startsAt: "", endsAt: "", label: "", description: ""
+  )
+
+  init(enabled: Bool, startsAt: String, endsAt: String, label: String, description: String) {
+    self.enabled = enabled
+    self.startsAt = startsAt
+    self.endsAt = endsAt
+    self.label = label
+    self.description = description
+  }
 
   init(_ mode: MaintenanceMode) {
     self.enabled = mode.enabled
