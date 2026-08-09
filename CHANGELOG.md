@@ -1,4 +1,15 @@
 
+## 0.5.0 - 2026-08-09
+
+### Added
+- Show build hash in footer, avatar menu in header
+
+
+### Fixed
+- Stop using leaf-kit's unimplemented ?? operator in banner/maintenance forms
+
+
+
 ## 0.4.1 - 2026-08-09
 
 ### Fixed
