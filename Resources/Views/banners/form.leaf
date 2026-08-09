@@ -9,28 +9,28 @@
 			<label class="form-label" for="scope_type">Scope type</label>
 			<select class="input" id="scope_type" name="scope_type" required>
 				#for(scopeType in scopeTypes):
-					<option value="#(scopeType)" #if(scopeType == (banner?.scopeType ?? "")): selected #endif>#(scopeType)</option>
+					<option value="#(scopeType)" #if(scopeType == banner.scopeType): selected #endif>#(scopeType)</option>
 				#endfor
 			</select>
 
 			<label class="form-label" for="scope_value">Scope value</label>
-			<input class="input" type="text" id="scope_value" name="scope_value" placeholder="e.g. catalog or /catalog/browse (leave blank for platform scope)" value="#(banner?.scopeValue ?? "")">
+			<input class="input" type="text" id="scope_value" name="scope_value" placeholder="e.g. catalog or /catalog/browse (leave blank for platform scope)" value="#(banner.scopeValue)">
 
 			<label class="form-label" for="severity">Severity</label>
 			<select class="input" id="severity" name="severity" required>
 				#for(severity in severities):
-					<option value="#(severity)" #if(severity == (banner?.severity ?? "")): selected #endif>#(severity)</option>
+					<option value="#(severity)" #if(severity == banner.severity): selected #endif>#(severity)</option>
 				#endfor
 			</select>
 
 			<label class="form-label" for="message">Message</label>
-			<textarea class="input" id="message" name="message" rows="3" required>#(banner?.message ?? "")</textarea>
+			<textarea class="input" id="message" name="message" rows="3" required>#(banner.message)</textarea>
 
 			<label class="form-label" for="starts_at">Starts at (optional)</label>
-			<input class="input" type="datetime-local" id="starts_at" name="starts_at" value="#(banner?.startsAt ?? "")">
+			<input class="input" type="datetime-local" id="starts_at" name="starts_at" value="#(banner.startsAt)">
 
 			<label class="form-label" for="expires_at">Expires at (required)</label>
-			<input class="input" type="datetime-local" id="expires_at" name="expires_at" value="#(banner?.expiresAt ?? "")" required>
+			<input class="input" type="datetime-local" id="expires_at" name="expires_at" value="#(banner.expiresAt)" required>
 			<p class="form-error" id="expires-error" style="display:none">Expiration is required.</p>
 
 			<div class="form-actions">

@@ -34,7 +34,7 @@ struct BannerController: RouteCollection {
       FormContext(
         formAction: "\(req.basePath)/banners",
         isEdit: false,
-        banner: nil,
+        banner: LeafBannerForm.empty,
         scopeTypes: BannerScopeType.allCases.map(\.rawValue),
         severities: BannerSeverity.allCases.map(\.rawValue),
         user: (await req.currentUser).map(LeafUser.init),
@@ -178,7 +178,7 @@ struct ListContext: Content {
 struct FormContext: Content {
   let formAction: String
   let isEdit: Bool
-  let banner: LeafBannerForm?
+  let banner: LeafBannerForm
   let scopeTypes: [String]
   let severities: [String]
   let user: LeafUser?
@@ -215,6 +215,11 @@ struct LeafBanner: Content {
   }
 }
 
+/// Flattened, always-present form field values - defaults resolved here in Swift (`??`) rather
+/// than in the Leaf template, since the pinned leaf-kit 1.14.3 lexes `??` but never implemented
+/// it (`ParameterResolver.resolve` throws `.unknownError("Future feature")` for
+/// `.nilCoalesce`), which made `banners/form.leaf`'s prior `banner?.field ?? ""` usage 500 on
+/// every render, edit and new alike.
 struct LeafBannerForm: Content {
   let id: String
   let scopeType: String
@@ -223,6 +228,23 @@ struct LeafBannerForm: Content {
   let message: String
   let startsAt: String
   let expiresAt: String
+
+  static let empty = LeafBannerForm(
+    id: "", scopeType: "", scopeValue: "", severity: "", message: "", startsAt: "", expiresAt: ""
+  )
+
+  init(
+    id: String, scopeType: String, scopeValue: String, severity: String, message: String,
+    startsAt: String, expiresAt: String
+  ) {
+    self.id = id
+    self.scopeType = scopeType
+    self.scopeValue = scopeValue
+    self.severity = severity
+    self.message = message
+    self.startsAt = startsAt
+    self.expiresAt = expiresAt
+  }
 
   init(_ banner: Banner) {
     self.id = banner.id
