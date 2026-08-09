@@ -111,4 +111,171 @@ struct AppTests {
       }
     }
   }
+
+  // Regression coverage for a leaf-kit 1.14.3 gap: `??`/`?.` are lexed but
+  // `ParameterResolver.resolve` throws `.unknownError("Future feature")` for `.nilCoalesce`, so
+  // any template using `optional?.field ?? "default"` 500s on every render. Both the new-record
+  // (no banner/mode passed) and edit (populated) cases must render without throwing.
+
+  @Test("banner form renders for a new banner with no prior values")
+  func bannerFormRendersForNewBanner() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-banner-form") { req async throws -> View in
+        try await req.view.render(
+          "banners/form",
+          FormContext(
+            formAction: "/banners", isEdit: false, banner: .empty,
+            scopeTypes: BannerScopeType.allCases.map(\.rawValue),
+            severities: BannerSeverity.allCases.map(\.rawValue), user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-banner-form") { res in
+        #expect(res.status == .ok)
+        #expect(res.body.string.contains("Create banner"))
+      }
+    }
+  }
+
+  @Test("banner form renders for an existing banner with its values preselected")
+  func bannerFormRendersForExistingBanner() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-banner-form-edit") { req async throws -> View in
+        let banner = Banner(
+          id: "b1", scopeType: .service, scopeValue: "catalog", severity: .warning,
+          message: "Degraded performance", startsAt: nil,
+          expiresAt: Date(timeIntervalSince1970: 0), createdBy: nil, createdAt: nil,
+          updatedAt: nil)
+        return try await req.view.render(
+          "banners/form",
+          FormContext(
+            formAction: "/banners/b1", isEdit: true, banner: LeafBannerForm(banner),
+            scopeTypes: BannerScopeType.allCases.map(\.rawValue),
+            severities: BannerSeverity.allCases.map(\.rawValue), user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-banner-form-edit") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("Degraded performance"))
+        #expect(body.contains(#"<option value="warning"  selected >warning</option>"#))
+      }
+    }
+  }
+
+  private struct FooterContext: Content {
+    let meta: PageMeta
+  }
+
+  @Test("footer shows the build hash truncated to 8 chars")
+  func footerShowsTruncatedBuildHash() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-footer") { req async throws -> View in
+        try await req.view.render("partials/footer", FooterContext(meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-footer") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        // BuildInfo.load() falls back to sha "unset" outside a container (no BUILD_INFO_PATH) -
+        // shorter than 8 chars, so this also covers prefix(_:) being a safe no-op on a short
+        // string, same rationale as assets-web's own truncation fix.
+        #expect(body.contains("built unknown / unset"))
+      }
+    }
+  }
+
+  @Test("maintenance-mode form renders for an unconfigured scope")
+  func maintenanceModeFormRendersForUnconfiguredScope() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-maintenance-form") { req async throws -> View in
+        try await req.view.render(
+          "maintenance-modes/form",
+          MaintenanceModeFormContext(
+            formAction: "/maintenance-modes", displayName: "assets", scopeType: "service",
+            scopeValue: "assets", isEdit: false, mode: .empty, user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-maintenance-form") { res in
+        #expect(res.status == .ok)
+        #expect(res.body.string.contains("Configure"))
+      }
+    }
+  }
+
+  @Test("maintenance-mode form renders for an already-configured scope")
+  func maintenanceModeFormRendersForConfiguredScope() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-maintenance-form-edit") { req async throws -> View in
+        let mode = MaintenanceMode(
+          id: "mm1", scopeType: .service, scopeValue: "catalog", enabled: true,
+          startsAt: Date(timeIntervalSince1970: 0), endsAt: nil, label: "Catalog down",
+          description: "Migrating data", createdAt: nil, updatedAt: nil)
+        return try await req.view.render(
+          "maintenance-modes/form",
+          MaintenanceModeFormContext(
+            formAction: "/maintenance-modes", displayName: "catalog", scopeType: "service",
+            scopeValue: "catalog", isEdit: true, mode: LeafMaintenanceModeForm(mode), user: nil,
+            meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-maintenance-form-edit") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("Catalog down"))
+        #expect(body.contains("Migrating data"))
+        #expect(body.contains("checked"))
+      }
+    }
+  }
+
+  private struct HeaderContext: Content {
+    let user: LeafUser?
+    let meta: PageMeta
+  }
+
+  @Test("header renders the avatar menu with identity, gravatar fallback, and user settings link")
+  func headerRendersAvatarMenuForLoggedInUser() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-header") { req async throws -> View in
+        let user = LeafUser(
+          SessionUser(
+            sub: "abc123", name: "Alice Example", email: "alice@example.com", roles: ["admin"]))
+        return try await req.view.render(
+          "partials/header", HeaderContext(user: user, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-header") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains(#"class="avatar-menu-trigger""#))
+        #expect(body.contains(#"class="avatar-menu-name">Alice Example"#))
+        #expect(body.contains(#"class="avatar-menu-email">alice@example.com"#))
+        #expect(body.contains(#"href="/users">User Settings"#))
+        #expect(body.contains(#"action="/auth/logout" method="post""#))
+        // No self-referential "Administration" item - this app already gates entry on the
+        // admin role, unlike catalog-web/main-web where the avatar menu links out to admin-web.
+        #expect(!body.contains("Administration"))
+      }
+    }
+  }
+
+  @Test("header falls back to the mystery-man avatar when logged out")
+  func headerRendersLoggedOutFallback() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-header-logged-out") { req async throws -> View in
+        try await req.view.render(
+          "partials/header", HeaderContext(user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-header-logged-out") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("mystery-man.svg"))
+        #expect(
+          body.contains(
+            #"class="avatar-menu-item" href="/auth/login?return_to=/test-header-logged-out">Log in"#
+          ))
+      }
+    }
+  }
 }
