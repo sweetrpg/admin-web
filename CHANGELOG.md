@@ -1,4 +1,11 @@
 
+## 0.4.1 - 2026-08-09
+
+### Fixed
+- Update shared static asset paths for assets-web's css/img/js reorg
+
+
+
 ## 0.4.0 - 2026-08-07
 
 ### Added
