@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>SweetRPG Admin</title>
-	<link rel="icon" type="image/png" href="#(meta.sharedAssetsURL)/static/img/favicon.png">
+	<link rel="icon" type="image/png" href="#(meta.sharedAssetsURL)/static/img/admin/favicon.png">
 	<link rel="stylesheet" href="#(meta.sharedAssetsURL)/static/css/main.css">
 	<link rel="stylesheet" href="#(meta.sharedAssetsURL)/static/css/avatar-menu.css">
 	<script>
