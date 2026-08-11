@@ -14,18 +14,26 @@
 				Enabled
 			</label>
 
-			<label class="form-label" for="label">Label</label>
-			<input class="input" type="text" id="label" name="label" placeholder="Short display text" value="#(mode.label)" required>
+			<label class="form-label" for="label">
+				<input class="input" type="text" id="label" name="label" placeholder="Short display text" value="#(mode.label)" required>
+				Label
+			</label>
 
-			<label class="form-label" for="description">Description</label>
-			<textarea class="input" id="description" name="description" rows="3" placeholder="Detail text for the tooltip/maintenance page" required>#(mode.description)</textarea>
+	 		<label class="form-label" for="description">
+                <textarea class="input" id="description" name="description" rows="3" placeholder="Detail text for the tooltip/maintenance page" required>#(mode.description)</textarea>
+				Description
+				</label>
 
-			<label class="form-label" for="starts_at">Starts at (required)</label>
-			<input class="input" type="datetime-local" id="starts_at" name="starts_at" value="#(mode.startsAt)" required>
-			<p class="form-error" id="starts-error" style="display:none">Start date is required.</p>
+			<label class="form-label" for="starts_at">
+            	<input class="input" type="datetime-local" id="starts_at" name="starts_at" value="#(mode.startsAt)" required>
+    			<p class="form-error" id="starts-error" style="display:none">Start date is required.</p>
+    			Starts at*
+			</label>
 
-			<label class="form-label" for="ends_at">Ends at (optional)</label>
-			<input class="input" type="datetime-local" id="ends_at" name="ends_at" value="#(mode.endsAt)">
+			<label class="form-label" for="ends_at">
+				<input class="input" type="datetime-local" id="ends_at" name="ends_at" value="#(mode.endsAt)">
+				Ends at
+			</label>
 
 			<div class="form-actions">
 				<button type="submit" class="btn btn-primary">Save</button>

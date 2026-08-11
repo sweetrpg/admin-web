@@ -1,4 +1,15 @@
 
+## 0.6.0 - 2026-08-11
+
+### Added
+- Restructure form labels for accessibility
+
+
+### Fixed
+- Image path for favicon
+
+
+
 ## 0.5.0 - 2026-08-09
 
 ### Added
