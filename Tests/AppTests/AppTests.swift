@@ -240,7 +240,8 @@ struct AppTests {
       app.get("test-header") { req async throws -> View in
         let user = LeafUser(
           SessionUser(
-            sub: "abc123", name: "Alice Example", email: "alice@example.com", roles: ["admin"]))
+            sub: "abc123", name: "Alice Example", email: "alice@example.com", roles: ["admin"],
+            expiry: Date().addingTimeInterval(3600)))
         return try await req.view.render(
           "partials/header", HeaderContext(user: user, meta: PageMeta(req)))
       }
