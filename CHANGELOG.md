@@ -1,4 +1,11 @@
 
+## 0.7.0 - 2026-08-11
+
+### Added
+- Honor shared session expiry field
+
+
+
 ## 0.6.0 - 2026-08-11
 
 ### Added
