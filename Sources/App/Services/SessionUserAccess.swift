@@ -25,10 +25,12 @@ extension Request {
       guard
         let sessionData = try? await redis.get(key, asJSON: [String: String].self).get(),
         let userJSON = sessionData["user"],
-        let data = userJSON.data(using: .utf8)
+        let data = userJSON.data(using: .utf8),
+        let user = try? JSONDecoder().decode(SessionUser.self, from: data),
+        user.expiry > Date()
       else { return nil }
 
-      return try? JSONDecoder().decode(SessionUser.self, from: data)
+      return user
     }
   }
 }
