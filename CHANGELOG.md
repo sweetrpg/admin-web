@@ -1,4 +1,11 @@
 
+## 0.8.0 - 2026-08-12
+
+### Added
+- Report build version on /status/ping
+
+
+
 ## 0.7.1 - 2026-08-12
 
 ### Fixed
