@@ -252,7 +252,7 @@ struct AppTests {
         #expect(body.contains(#"class="avatar-menu-name">Alice Example"#))
         #expect(body.contains(#"class="avatar-menu-email">alice@example.com"#))
         #expect(body.contains(#"href="/users">User Settings"#))
-        #expect(body.contains(#"action="/auth/logout" method="post""#))
+        #expect(body.contains(#"action="/auth/logout?return_to=/test-header" method="post""#))
         // No self-referential "Administration" item - this app already gates entry on the
         // admin role, unlike catalog-web/main-web where the avatar menu links out to admin-web.
         #expect(!body.contains("Administration"))
