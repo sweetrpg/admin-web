@@ -1,4 +1,11 @@
 
+## 0.7.1 - 2026-08-12
+
+### Fixed
+- Pass return_to on logout link
+
+
+
 ## 0.7.0 - 2026-08-11
 
 ### Added
