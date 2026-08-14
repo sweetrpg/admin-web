@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import VaporTesting
 
@@ -279,5 +280,22 @@ struct AppTests {
           ))
       }
     }
+  }
+
+  @Test("SessionUser decodes auth-web's RFC 3339 expiry, not a raw Double")
+  func sessionUserDecodesRFC3339Expiry() throws {
+    // Exactly the shape auth-web's SessionUserAccess now writes (see auth-web's
+    // fix/session-expiry-iso8601) - docs/frontend-conventions.md's "Shared session schema"
+    // documents `expiry` as an RFC 3339 string, not the raw Double a plain JSONDecoder's
+    // .deferredToDate default would expect.
+    let json = """
+      {"sub":"auth0|abc","name":"Ada","email":"ada@example.com","roles":["admin"],\
+      "expiry":"2027-01-15T08:00:00Z"}
+      """
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let user = try decoder.decode(SessionUser.self, from: Data(json.utf8))
+    #expect(user.name == "Ada")
+    #expect(user.expiry.timeIntervalSince1970 == 1_800_000_000)
   }
 }
