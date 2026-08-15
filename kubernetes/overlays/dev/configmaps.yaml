@@ -25,9 +25,10 @@ data:
   INGRESS_BASE_PATH: /admin
   # Where the SweetRPG logo in the nav links out to - the platform's root site, not this app's
   # own home page.
-  SWEETRPG_ROOT_URL: https://dev.sweetrpg.com/
+  ROOT_URL: https://dev.sweetrpg.com/
   # Base URL for shared frontend static assets (logo, favicon, stylesheet), served from
   # assets-web rather than this app's own Public/.
-  SHARED_ASSETS_URL: https://dev.sweetrpg.com/assets
+  ASSETS_URL: https://dev.sweetrpg.com/assets
+  SHARED_URL: https://dev.sweetrpg.com/shared
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info

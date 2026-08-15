@@ -21,7 +21,8 @@ data:
   INGRESS_BASE_PATH: /admin
   # Shared host behind the single traefik-tailscale front door, same convention as the dev
   # overlay's dev.sweetrpg.com.
-  SWEETRPG_ROOT_URL: https://sweetrpg.local/
-  SHARED_ASSETS_URL: https://sweetrpg.local/assets
+  ROOT_URL: https://sweetrpg.local/
+  ASSETS_URL: https://sweetrpg.local/assets
+  SHARED_URL: https://sweetrpg.local/shared
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
