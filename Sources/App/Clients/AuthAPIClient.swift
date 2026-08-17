@@ -121,7 +121,7 @@ struct AuthAPIClient {
   /// unauthenticated request `auth-api` would reject anyway - a clearer error for whoever's
   /// debugging a missing-config deployment than a generic 401 from the other service.
   private func requireToken() throws -> String {
-    try await withSpan("client-require-token") { _ in
+    try withSpan("client-require-token") { _ in
       guard let token = internalServiceToken else {
         throw Abort(
           .internalServerError,
