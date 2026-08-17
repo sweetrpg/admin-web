@@ -6,7 +6,7 @@ import Vapor
 struct PageMeta: Content {
   let basePath: String
   let rootURL: String
-  let sharedAssetsURL: String
+  let sharedURL: String
   let buildVersion: String
   let buildDate: String
   /// First 8 chars of the build sha - matches catalog-web's `PageMeta.buildHash` and
@@ -28,7 +28,7 @@ struct PageMeta: Content {
   init(_ req: Request) {
     self.basePath = req.basePath
     self.rootURL = req.rootURL
-    self.sharedAssetsURL = req.sharedAssetsURL
+    self.sharedURL = req.sharedURL
     self.buildVersion = req.buildInfo.version
     self.buildDate = req.buildInfo.date
     self.buildHash = String(req.buildInfo.sha.prefix(8))

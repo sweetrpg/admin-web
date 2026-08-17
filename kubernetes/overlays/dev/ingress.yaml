@@ -10,10 +10,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: sweetrpg-admin-errors-shared-web@kubernetescrd,sweetrpg-admin-strip-prefix-web@kubernetescrd
     kubernetes.io/ingress.class: traefik
     cert-manager.io/cluster-issuer: letsencrypt-prd
-    # main-web's Ingress owns the ExternalDNS hostname/target annotations for dev.sweetrpg.com -
-    # deliberately not repeating them here (see docs/git-repos.md's "Shared-host Ingress
-    # ownership" section in sweetrpg/platform): ExternalDNS ownership conflicts if more than one
-    # Ingress for the same host sets them.
 
 spec:
   ingressClassName: traefik

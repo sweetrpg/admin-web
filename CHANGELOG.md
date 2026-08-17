@@ -1,4 +1,22 @@
 
+## 0.10.0 - 2026-08-17
+
+### Added
+- Add tracing
+
+
+### Changed
+- Rename environment variables for clarity
+- Extract view models and update shared URL references
+- Reorganize source files into Clients, Config, and Handlers directories
+- Rename files to follow naming convention
+
+
+### Fixed
+- Remove await
+
+
+
 ## 0.9.0 - 2026-08-14
 
 ### Added

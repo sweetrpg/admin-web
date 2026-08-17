@@ -14,14 +14,14 @@ extension Request {
   /// Where the SweetRPG logo links out to - the platform's root site, not this app's own home
   /// page. Falls back to "/" (this app's own root) if unset.
   var rootURL: String {
-    Environment.get("SWEETRPG_ROOT_URL") ?? "/"
+    Environment.get("ROOT_URL") ?? "/"
   }
 
   /// Base URL for shared frontend static assets (logo, favicon, stylesheet), served from
   /// assets-web rather than this app's own Public/ - see docs/frontend-conventions.md in
-  /// sweetrpg/platform. Falls back to a local assets-web instance's own address.
-  var sharedAssetsURL: String {
-    Environment.get("SHARED_ASSETS_URL") ?? "http://localhost:8081"
+  /// sweetrpg/platform. Falls back to a local shared-web instance's own address.
+  var sharedURL: String {
+    Environment.get("SHARED_URL") ?? "http://localhost:8081"
   }
 
   /// Redirects to a path on this app itself (e.g. "/login"), prefixed with `basePath`. Use this
