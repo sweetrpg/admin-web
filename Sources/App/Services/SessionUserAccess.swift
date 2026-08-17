@@ -1,4 +1,5 @@
 import Redis
+import Tracing
 import Vapor
 
 /// The shared session cookie `auth-web` writes and every other frontend reads - see design.md's
@@ -25,21 +26,23 @@ extension Request {
   /// write this read-only consumer must never make.
   var currentUser: SessionUser? {
     get async {
-      guard application.sharedSessionRedisConfigured else { return nil }
-      guard let sessionID = cookies[sharedSessionCookieName]?.string else { return nil }
+      await withSpan("session-user-access") { _ in
+        guard application.sharedSessionRedisConfigured else { return nil }
+        guard let sessionID = cookies[sharedSessionCookieName]?.string else { return nil }
 
-      // Key format matches Vapor's ResilientRedisSessionDriver (auth-web's session writer):
-      // `vrs-<sessionID>`, JSON-encoded Vapor `SessionData` (a flat `[String: String]`).
-      let key = RedisKey("vrs-\(sessionID)")
-      guard
-        let sessionData = try? await redis.get(key, asJSON: [String: String].self).get(),
-        let userJSON = sessionData["user"],
-        let data = userJSON.data(using: .utf8),
-        let user = try? sharedSessionDecoder.decode(SessionUser.self, from: data),
-        user.expiry > Date()
-      else { return nil }
+        // Key format matches Vapor's ResilientRedisSessionDriver (auth-web's session writer):
+        // `vrs-<sessionID>`, JSON-encoded Vapor `SessionData` (a flat `[String: String]`).
+        let key = RedisKey("vrs-\(sessionID)")
+        guard
+          let sessionData = try? await redis.get(key, asJSON: [String: String].self).get(),
+          let userJSON = sessionData["user"],
+          let data = userJSON.data(using: .utf8),
+          let user = try? sharedSessionDecoder.decode(SessionUser.self, from: data),
+          user.expiry > Date()
+        else { return nil }
 
-      return user
+        return user
+      }
     }
   }
 }

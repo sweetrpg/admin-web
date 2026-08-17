@@ -1,3 +1,4 @@
+import Tracing
 import Vapor
 
 /// Maintenance-mode list, per-scope create/edit form, and direct enable/disable toggle -
@@ -17,91 +18,101 @@ struct MaintenanceModeController: RouteCollection {
 
   @Sendable
   func list(req: Request) async throws -> View {
-    let records = try await req.adminAPI.listAllMaintenanceModes()
-    let byScope = Dictionary(
-      records.map { (scopeKey(type: $0.scopeType, value: $0.scopeValue), $0) },
-      uniquingKeysWith: { first, _ in first })
+    try await withSpan("list-maintenance-modes") { _ in
+      let records = try await req.adminAPI.listAllMaintenanceModes()
+      let byScope = Dictionary(
+        records.map { (scopeKey(type: $0.scopeType, value: $0.scopeValue), $0) },
+        uniquingKeysWith: { first, _ in first })
 
-    var rows: [LeafMaintenanceScopeRow] = [
-      LeafMaintenanceScopeRow(
-        scopeType: .platform, scopeValue: "", displayName: "Platform (all apps)",
-        record: byScope[scopeKey(type: .platform, value: "")])
-    ]
-    rows += KnownServiceScope.all.map { service in
-      LeafMaintenanceScopeRow(
-        scopeType: .service, scopeValue: service, displayName: service,
-        record: byScope[scopeKey(type: .service, value: service)])
+      var rows: [LeafMaintenanceScopeRow] = [
+        LeafMaintenanceScopeRow(
+          scopeType: .platform, scopeValue: "", displayName: "Platform (all apps)",
+          record: byScope[scopeKey(type: .platform, value: "")])
+      ]
+      rows += KnownServiceScope.all.map { service in
+        LeafMaintenanceScopeRow(
+          scopeType: .service, scopeValue: service, displayName: service,
+          record: byScope[scopeKey(type: .service, value: service)])
+      }
+
+      return try await req.view.render(
+        "maintenance-modes/list",
+        MaintenanceModeListContext(
+          rows: rows,
+          user: (await req.currentUser).map(LeafUser.init),
+          meta: PageMeta(req)
+        ))
     }
-
-    return try await req.view.render(
-      "maintenance-modes/list",
-      MaintenanceModeListContext(
-        rows: rows,
-        user: (await req.currentUser).map(LeafUser.init),
-        meta: PageMeta(req)
-      ))
   }
 
   @Sendable
   func editForm(req: Request) async throws -> View {
-    guard let scopeTypeRaw = req.query[String.self, at: "scope_type"],
-      let scopeType = MaintenanceScopeType(rawValue: scopeTypeRaw)
-    else {
-      throw Abort(.badRequest, reason: "scope_type is required")
-    }
-    let scopeValue = req.query[String.self, at: "scope_value"] ?? ""
-    if scopeType == .service {
-      guard KnownServiceScope.all.contains(scopeValue) else {
-        throw Abort(.badRequest, reason: "unknown service scope")
+    try await withSpan("edit-form-maintenance-mode") { _ in
+      guard let scopeTypeRaw = req.query[String.self, at: "scope_type"],
+        let scopeType = MaintenanceScopeType(rawValue: scopeTypeRaw)
+      else {
+        throw Abort(.badRequest, reason: "scope_type is required")
       }
-    }
+      let scopeValue = req.query[String.self, at: "scope_value"] ?? ""
+      if scopeType == .service {
+        guard KnownServiceScope.all.contains(scopeValue) else {
+          throw Abort(.badRequest, reason: "unknown service scope")
+        }
+      }
 
-    let records = try await req.adminAPI.listAllMaintenanceModes()
-    let existing = records.first {
-      $0.scopeType == scopeType && $0.scopeValue == scopeValue
-    }
+      let records = try await req.adminAPI.listAllMaintenanceModes()
+      let existing = records.first {
+        $0.scopeType == scopeType && $0.scopeValue == scopeValue
+      }
 
-    return try await req.view.render(
-      "maintenance-modes/form",
-      MaintenanceModeFormContext(
-        formAction: "\(req.basePath)/maintenance-modes",
-        displayName: scopeType == .platform ? "Platform (all apps)" : scopeValue,
-        scopeType: scopeType.rawValue,
-        scopeValue: scopeValue,
-        isEdit: existing != nil,
-        mode: existing.map(LeafMaintenanceModeForm.init) ?? .empty,
-        user: (await req.currentUser).map(LeafUser.init),
-        meta: PageMeta(req)
-      ))
+      return try await req.view.render(
+        "maintenance-modes/form",
+        MaintenanceModeFormContext(
+          formAction: "\(req.basePath)/maintenance-modes",
+          displayName: scopeType == .platform ? "Platform (all apps)" : scopeValue,
+          scopeType: scopeType.rawValue,
+          scopeValue: scopeValue,
+          isEdit: existing != nil,
+          mode: existing.map(LeafMaintenanceModeForm.init) ?? .empty,
+          user: (await req.currentUser).map(LeafUser.init),
+          meta: PageMeta(req)
+        ))
+    }
   }
 
   @Sendable
   func upsert(req: Request) async throws -> Response {
-    let input = try Self.decodeInput(req)
-    let actingUserSub = try await requireActingUserSub(req)
-    _ = try await req.adminAPI.upsertMaintenanceMode(input, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/maintenance-modes")
+    try await withSpan("upsert-maintenance-mode") { _ in
+      let input = try Self.decodeInput(req)
+      let actingUserSub = try await requireActingUserSub(req)
+      _ = try await req.adminAPI.upsertMaintenanceMode(input, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/maintenance-modes")
+    }
   }
 
   @Sendable
   func toggle(req: Request) async throws -> Response {
-    guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
-    let records = try await req.adminAPI.listAllMaintenanceModes()
-    guard let mode = records.first(where: { $0.id == modeID }) else {
-      throw Abort(.notFound)
+    try await withSpan("toggle-maintenance-mode") { _ in
+      guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
+      let records = try await req.adminAPI.listAllMaintenanceModes()
+      guard let mode = records.first(where: { $0.id == modeID }) else {
+        throw Abort(.notFound)
+      }
+      let actingUserSub = try await requireActingUserSub(req)
+      _ = try await req.adminAPI.setMaintenanceModeEnabled(
+        mode, enabled: !mode.enabled, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/maintenance-modes")
     }
-    let actingUserSub = try await requireActingUserSub(req)
-    _ = try await req.adminAPI.setMaintenanceModeEnabled(
-      mode, enabled: !mode.enabled, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/maintenance-modes")
   }
 
   @Sendable
   func delete(req: Request) async throws -> Response {
-    guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
-    let actingUserSub = try await requireActingUserSub(req)
-    try await req.adminAPI.deleteMaintenanceMode(id: modeID, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/maintenance-modes")
+    try await withSpan("delete-maintenance-mode") { _ in
+      guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
+      let actingUserSub = try await requireActingUserSub(req)
+      try await req.adminAPI.deleteMaintenanceMode(id: modeID, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/maintenance-modes")
+    }
   }
 
   /// Same rationale as `BannerController.requireActingUserSub`: `AuthRequiredMiddleware`

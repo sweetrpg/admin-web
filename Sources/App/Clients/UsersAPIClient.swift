@@ -1,3 +1,4 @@
+import Tracing
 import Vapor
 
 /// Matches `InternalServiceAuth.headerName` in `users-api` exactly - the two repos are separate
@@ -40,22 +41,24 @@ struct UsersAPIClient {
   }
 
   func listUsers() async throws -> [UserIdentity] {
-    guard let token = internalServiceToken else {
-      throw Abort(
-        .internalServerError,
-        reason: "USERS_API_INTERNAL_SERVICE_TOKEN is not configured")
-    }
-    let response = try await client.get(URI(string: baseURL + "/api/admin/users")) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      if let traceparent {
-        req.headers.replaceOrAdd(name: "traceparent", value: traceparent)
+    try await withSpan("client-list-users") { _ in
+      guard let token = internalServiceToken else {
+        throw Abort(
+          .internalServerError,
+          reason: "USERS_API_INTERNAL_SERVICE_TOKEN is not configured")
       }
+      let response = try await client.get(URI(string: baseURL + "/api/admin/users")) { req in
+        req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
+        if let traceparent {
+          req.headers.replaceOrAdd(name: "traceparent", value: traceparent)
+        }
+      }
+      guard (200..<300).contains(response.status.code) else {
+        throw Abort(
+          response.status, reason: "users-api request failed with status \(response.status.code)")
+      }
+      return try response.content.decode([UserIdentity].self)
     }
-    guard (200..<300).contains(response.status.code) else {
-      throw Abort(
-        response.status, reason: "users-api request failed with status \(response.status.code)")
-    }
-    return try response.content.decode([UserIdentity].self)
   }
 }
 

@@ -1,3 +1,4 @@
+import Tracing
 import Vapor
 
 /// Gates every route behind a session that carries the `admin` role, per this change's revised
@@ -22,20 +23,22 @@ struct AuthRequiredMiddleware: AsyncMiddleware {
   ]
 
   func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
-    let path = request.url.path
-    if Self.unauthenticatedPaths.contains(path) || path.hasPrefix("/public/") {
+    try await withSpan("auth-required-middleware") { _ in
+      let path = request.url.path
+      if Self.unauthenticatedPaths.contains(path) || path.hasPrefix("/public/") {
+        return try await next.respond(to: request)
+      }
+
+      guard let user = await request.currentUser else {
+        let returnTo = "\(request.basePath)\(path)"
+        let encodedReturnTo =
+          returnTo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "/"
+        return request.redirect(to: "/auth/login?return_to=\(encodedReturnTo)")
+      }
+      guard user.roles.contains("admin") else {
+        throw Abort(.forbidden, reason: "Your account does not have access to this page.")
+      }
       return try await next.respond(to: request)
     }
-
-    guard let user = await request.currentUser else {
-      let returnTo = "\(request.basePath)\(path)"
-      let encodedReturnTo =
-        returnTo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "/"
-      return request.redirect(to: "/auth/login?return_to=\(encodedReturnTo)")
-    }
-    guard user.roles.contains("admin") else {
-      throw Abort(.forbidden, reason: "Your account does not have access to this page.")
-    }
-    return try await next.respond(to: request)
   }
 }

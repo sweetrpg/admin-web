@@ -1,3 +1,4 @@
+import Tracing
 import Vapor
 
 /// Matches `InternalServiceAuth.headerName` in `auth-api` exactly - the two repos are separate
@@ -52,48 +53,58 @@ struct AuthAPIClient {
   /// summary back from `auth-api` (implicit `user` role, no denials), so the result always has
   /// one entry per requested subject.
   func listRoles(subjects: [String]) async throws -> [SubjectRolesSummary] {
-    guard !subjects.isEmpty else { return [] }
-    let encoded = subjects.map { Self.percentEncode($0, in: .urlQueryAllowed) }
-    let response = try await get(
-      URI(string: baseURL + "/api/admin/roles?subjects=\(encoded.joined(separator: ","))"))
-    try Self.throwOnFailure(response)
-    return try response.content.decode([SubjectRolesSummary].self)
+    try await withSpan("client-list-roles") { _ in
+      guard !subjects.isEmpty else { return [] }
+      let encoded = subjects.map { Self.percentEncode($0, in: .urlQueryAllowed) }
+      let response = try await get(
+        URI(string: baseURL + "/api/admin/roles?subjects=\(encoded.joined(separator: ","))"))
+      try Self.throwOnFailure(response)
+      return try response.content.decode([SubjectRolesSummary].self)
+    }
   }
 
   func addRole(subject: String, role: String, actingUserSub: String) async throws {
-    let response = try await post(
-      URI(string: baseURL + "/api/admin/roles/\(Self.percentEncode(subject))"),
-      actingUserSub: actingUserSub
-    ) { req in
-      try req.content.encode(["role": role])
+    try await withSpan("client-add-role") { _ in
+      let response = try await post(
+        URI(string: baseURL + "/api/admin/roles/\(Self.percentEncode(subject))"),
+        actingUserSub: actingUserSub
+      ) { req in
+        try req.content.encode(["role": role])
+      }
+      try Self.throwOnFailure(response)
     }
-    try Self.throwOnFailure(response)
   }
 
   func removeRole(subject: String, role: String, actingUserSub: String) async throws {
-    let response = try await delete(
-      URI(string: baseURL + "/api/admin/roles/\(Self.percentEncode(subject))/\(role)"),
-      actingUserSub: actingUserSub)
-    try Self.throwOnFailure(response)
+    try await withSpan("client-remove-role") { _ in
+      let response = try await delete(
+        URI(string: baseURL + "/api/admin/roles/\(Self.percentEncode(subject))/\(role)"),
+        actingUserSub: actingUserSub)
+      try Self.throwOnFailure(response)
+    }
   }
 
   func addDenyEntry(subject: String, service: String, actingUserSub: String) async throws {
-    let response = try await post(
-      URI(string: baseURL + "/api/admin/deny-entries/\(Self.percentEncode(subject))"),
-      actingUserSub: actingUserSub
-    ) { req in
-      try req.content.encode(["service": service])
+    try await withSpan("client-add-deny-entry") { _ in
+      let response = try await post(
+        URI(string: baseURL + "/api/admin/deny-entries/\(Self.percentEncode(subject))"),
+        actingUserSub: actingUserSub
+      ) { req in
+        try req.content.encode(["service": service])
+      }
+      try Self.throwOnFailure(response)
     }
-    try Self.throwOnFailure(response)
   }
 
   func removeDenyEntry(subject: String, service: String, actingUserSub: String) async throws {
-    let response = try await delete(
-      URI(
-        string: baseURL
-          + "/api/admin/deny-entries/\(Self.percentEncode(subject))/\(service)"),
-      actingUserSub: actingUserSub)
-    try Self.throwOnFailure(response)
+    try await withSpan("client-remove-deny-entry") { _ in
+      let response = try await delete(
+        URI(
+          string: baseURL
+            + "/api/admin/deny-entries/\(Self.percentEncode(subject))/\(service)"),
+        actingUserSub: actingUserSub)
+      try Self.throwOnFailure(response)
+    }
   }
 
   // MARK: - Request helpers
@@ -110,19 +121,23 @@ struct AuthAPIClient {
   /// unauthenticated request `auth-api` would reject anyway - a clearer error for whoever's
   /// debugging a missing-config deployment than a generic 401 from the other service.
   private func requireToken() throws -> String {
-    guard let token = internalServiceToken else {
-      throw Abort(
-        .internalServerError,
-        reason: "AUTH_API_INTERNAL_SERVICE_TOKEN is not configured")
+    try await withSpan("client-require-token") { _ in
+      guard let token = internalServiceToken else {
+        throw Abort(
+          .internalServerError,
+          reason: "AUTH_API_INTERNAL_SERVICE_TOKEN is not configured")
+      }
+      return token
     }
-    return token
   }
 
   private func get(_ uri: URI) async throws -> ClientResponse {
-    let token = try requireToken()
-    return try await client.get(uri) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      applyTraceparent(&req)
+    try await withSpan("client-get-uri") { _ in
+      let token = try requireToken()
+      return try await client.get(uri) { req in
+        req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
+        applyTraceparent(&req)
+      }
     }
   }
 
@@ -132,21 +147,25 @@ struct AuthAPIClient {
   )
     async throws -> ClientResponse
   {
-    let token = try requireToken()
-    return try await client.post(uri) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
-      applyTraceparent(&req)
-      try beforeSend(&req)
+    try await withSpan("client-post-uri") { _ in
+      let token = try requireToken()
+      return try await client.post(uri) { req in
+        req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
+        req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+        applyTraceparent(&req)
+        try beforeSend(&req)
+      }
     }
   }
 
   private func delete(_ uri: URI, actingUserSub: String) async throws -> ClientResponse {
-    let token = try requireToken()
-    return try await client.delete(uri) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
-      applyTraceparent(&req)
+    try await withSpan("client-delete-uri") { _ in
+      let token = try requireToken()
+      return try await client.delete(uri) { req in
+        req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
+        req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+        applyTraceparent(&req)
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import Crypto
 import Foundation
+import Tracing
 import Vapor
 
 /// Banner list, create/edit form, immediate expire, and delete - the whole management UI per
@@ -17,88 +18,102 @@ struct BannerController: RouteCollection {
 
   @Sendable
   func list(req: Request) async throws -> View {
-    let banners = try await req.adminAPI.listAll()
-    let sorted = banners.sorted { $0.expiresAt > $1.expiresAt }
-    return try await req.view.render(
-      "banners/list",
-      ListContext(
-        banners: sorted.map(LeafBanner.init),
-        isEmpty: sorted.isEmpty,
-        user: (await req.currentUser).map(LeafUser.init),
-        meta: PageMeta(req)
-      ))
+    try await withSpan("list-banner") { _ in
+      let banners = try await req.adminAPI.listAll()
+      let sorted = banners.sorted { $0.expiresAt > $1.expiresAt }
+      return try await req.view.render(
+        "banners/list",
+        ListContext(
+          banners: sorted.map(LeafBanner.init),
+          isEmpty: sorted.isEmpty,
+          user: (await req.currentUser).map(LeafUser.init),
+          meta: PageMeta(req)
+        ))
+    }
   }
 
   @Sendable
   func newForm(req: Request) async throws -> View {
-    try await req.view.render(
-      "banners/form",
-      FormContext(
-        formAction: "\(req.basePath)/banners",
-        isEdit: false,
-        banner: LeafBannerForm.empty,
-        scopeTypes: BannerScopeType.allCases.map(\.rawValue),
-        severities: BannerSeverity.allCases.map(\.rawValue),
-        user: (await req.currentUser).map(LeafUser.init),
-        meta: PageMeta(req)
-      ))
+    try await withSpan("new-banner-form") { _ in
+      try await req.view.render(
+        "banners/form",
+        FormContext(
+          formAction: "\(req.basePath)/banners",
+          isEdit: false,
+          banner: LeafBannerForm.empty,
+          scopeTypes: BannerScopeType.allCases.map(\.rawValue),
+          severities: BannerSeverity.allCases.map(\.rawValue),
+          user: (await req.currentUser).map(LeafUser.init),
+          meta: PageMeta(req)
+        ))
+    }
   }
 
   @Sendable
   func editForm(req: Request) async throws -> View {
-    guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
-    let banners = try await req.adminAPI.listAll()
-    guard let banner = banners.first(where: { $0.id == bannerID }) else {
-      throw Abort(.notFound)
+    try await withSpan("edit-banner-form") { _ in
+      guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
+      let banners = try await req.adminAPI.listAll()
+      guard let banner = banners.first(where: { $0.id == bannerID }) else {
+        throw Abort(.notFound)
+      }
+      return try await req.view.render(
+        "banners/form",
+        FormContext(
+          formAction: "\(req.basePath)/banners/\(bannerID)",
+          isEdit: true,
+          banner: LeafBannerForm(banner),
+          scopeTypes: BannerScopeType.allCases.map(\.rawValue),
+          severities: BannerSeverity.allCases.map(\.rawValue),
+          user: (await req.currentUser).map(LeafUser.init),
+          meta: PageMeta(req)
+        ))
     }
-    return try await req.view.render(
-      "banners/form",
-      FormContext(
-        formAction: "\(req.basePath)/banners/\(bannerID)",
-        isEdit: true,
-        banner: LeafBannerForm(banner),
-        scopeTypes: BannerScopeType.allCases.map(\.rawValue),
-        severities: BannerSeverity.allCases.map(\.rawValue),
-        user: (await req.currentUser).map(LeafUser.init),
-        meta: PageMeta(req)
-      ))
   }
 
   @Sendable
   func create(req: Request) async throws -> Response {
-    let input = try Self.decodeInput(req)
-    let actingUserSub = try await requireActingUserSub(req)
-    _ = try await req.adminAPI.create(input, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/")
+    try await withSpan("create-banner") { _ in
+      let input = try Self.decodeInput(req)
+      let actingUserSub = try await requireActingUserSub(req)
+      _ = try await req.adminAPI.create(input, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/")
+    }
   }
 
   @Sendable
   func update(req: Request) async throws -> Response {
-    guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
-    let input = try Self.decodeInput(req)
-    let actingUserSub = try await requireActingUserSub(req)
-    _ = try await req.adminAPI.update(id: bannerID, input, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/")
+    try await withSpan("update-banner") { _ in
+      guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
+      let input = try Self.decodeInput(req)
+      let actingUserSub = try await requireActingUserSub(req)
+      _ = try await req.adminAPI.update(id: bannerID, input, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/")
+    }
   }
 
   @Sendable
   func expire(req: Request) async throws -> Response {
-    guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
-    let banners = try await req.adminAPI.listAll()
-    guard let banner = banners.first(where: { $0.id == bannerID }) else {
-      throw Abort(.notFound)
+    try await withSpan("expire-banner") { _ in
+      guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
+      let banners = try await req.adminAPI.listAll()
+      guard let banner = banners.first(where: { $0.id == bannerID }) else {
+        throw Abort(.notFound)
+      }
+      let actingUserSub = try await requireActingUserSub(req)
+      _ = try await req.adminAPI.expireNow(banner, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/")
     }
-    let actingUserSub = try await requireActingUserSub(req)
-    _ = try await req.adminAPI.expireNow(banner, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/")
   }
 
   @Sendable
   func delete(req: Request) async throws -> Response {
-    guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
-    let actingUserSub = try await requireActingUserSub(req)
-    try await req.adminAPI.delete(id: bannerID, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/")
+    try await withSpan("delete-banner") { _ in
+      guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
+      let actingUserSub = try await requireActingUserSub(req)
+      try await req.adminAPI.delete(id: bannerID, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/")
+    }
   }
 
   /// Every mutating route needs the acting admin's `sub` to pass to `admin-api` for its audit

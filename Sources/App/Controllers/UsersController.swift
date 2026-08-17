@@ -1,3 +1,4 @@
+import Tracing
 import Vapor
 
 /// Role and per-service deny-entry management - the counterpart to `BannerController` for the
@@ -25,78 +26,88 @@ struct UsersController: RouteCollection {
 
   @Sendable
   func list(req: Request) async throws -> View {
-    let identities = try await req.usersAPI.listUsers()
-    // Role/deny-entry management needs a subject to act on - a user with no Auth0 LoginProfile
-    // yet (shouldn't normally happen; Auth0 is the platform's sole login mechanism) has nothing
-    // to compose against and is left out rather than shown with broken controls.
-    let withSubject = identities.compactMap { identity -> (UserIdentity, String)? in
-      guard let subject = identity.subject else { return nil }
-      return (identity, subject)
-    }
-    let rolesBySubject = Dictionary(
-      uniqueKeysWithValues: try await req.authAPI.listRoles(subjects: withSubject.map(\.1))
-        .map { ($0.subject, $0) })
+    try await withSpan("list-users") { _ in
+      let identities = try await req.usersAPI.listUsers()
+      // Role/deny-entry management needs a subject to act on - a user with no Auth0 LoginProfile
+      // yet (shouldn't normally happen; Auth0 is the platform's sole login mechanism) has nothing
+      // to compose against and is left out rather than shown with broken controls.
+      let withSubject = identities.compactMap { identity -> (UserIdentity, String)? in
+        guard let subject = identity.subject else { return nil }
+        return (identity, subject)
+      }
+      let rolesBySubject = Dictionary(
+        uniqueKeysWithValues: try await req.authAPI.listRoles(subjects: withSubject.map(\.1))
+          .map { ($0.subject, $0) })
 
-    let summaries = withSubject.map { identity, subject -> LeafUserSummary in
-      let roles = rolesBySubject[subject]
-      return LeafUserSummary(
-        subject: subject, email: identity.email, roles: roles?.roles ?? ["user"],
-        deniedServices: roles?.deniedServices ?? [])
-    }
+      let summaries = withSubject.map { identity, subject -> LeafUserSummary in
+        let roles = rolesBySubject[subject]
+        return LeafUserSummary(
+          subject: subject, email: identity.email, roles: roles?.roles ?? ["user"],
+          deniedServices: roles?.deniedServices ?? [])
+      }
 
-    return try await req.view.render(
-      "users/list",
-      UsersListContext(
-        users: summaries,
-        isEmpty: summaries.isEmpty,
-        allRoles: Self.allRoles,
-        user: (await req.currentUser).map(LeafUser.init),
-        meta: PageMeta(req)
-      ))
+      return try await req.view.render(
+        "users/list",
+        UsersListContext(
+          users: summaries,
+          isEmpty: summaries.isEmpty,
+          allRoles: Self.allRoles,
+          user: (await req.currentUser).map(LeafUser.init),
+          meta: PageMeta(req)
+        ))
+    }
   }
 
   @Sendable
   func addRole(req: Request) async throws -> Response {
-    guard let subject = req.parameters.get("subject") else { throw Abort(.badRequest) }
-    struct RoleForm: Content { let role: String }
-    let form = try req.content.decode(RoleForm.self)
-    let actingUserSub = try await requireActingUserSub(req)
-    try await req.authAPI.addRole(subject: subject, role: form.role, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/users")
+    try await withSpan("add-role") { _ in
+      guard let subject = req.parameters.get("subject") else { throw Abort(.badRequest) }
+      struct RoleForm: Content { let role: String }
+      let form = try req.content.decode(RoleForm.self)
+      let actingUserSub = try await requireActingUserSub(req)
+      try await req.authAPI.addRole(subject: subject, role: form.role, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/users")
+    }
   }
 
   @Sendable
   func removeRole(req: Request) async throws -> Response {
-    guard let subject = req.parameters.get("subject"), let role = req.parameters.get("role")
-    else {
-      throw Abort(.badRequest)
+    try await withSpan("remove-role") { _ in
+      guard let subject = req.parameters.get("subject"), let role = req.parameters.get("role")
+      else {
+        throw Abort(.badRequest)
+      }
+      let actingUserSub = try await requireActingUserSub(req)
+      try await req.authAPI.removeRole(subject: subject, role: role, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/users")
     }
-    let actingUserSub = try await requireActingUserSub(req)
-    try await req.authAPI.removeRole(subject: subject, role: role, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/users")
   }
 
   @Sendable
   func addDenyEntry(req: Request) async throws -> Response {
-    guard let subject = req.parameters.get("subject") else { throw Abort(.badRequest) }
-    struct DenyEntryForm: Content { let service: String }
-    let form = try req.content.decode(DenyEntryForm.self)
-    let actingUserSub = try await requireActingUserSub(req)
-    try await req.authAPI.addDenyEntry(
-      subject: subject, service: form.service, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/users")
+    try await withSpan("add-deny-entry") { _ in
+      guard let subject = req.parameters.get("subject") else { throw Abort(.badRequest) }
+      struct DenyEntryForm: Content { let service: String }
+      let form = try req.content.decode(DenyEntryForm.self)
+      let actingUserSub = try await requireActingUserSub(req)
+      try await req.authAPI.addDenyEntry(
+        subject: subject, service: form.service, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/users")
+    }
   }
 
   @Sendable
   func removeDenyEntry(req: Request) async throws -> Response {
-    guard let subject = req.parameters.get("subject"), let service = req.parameters.get("service")
-    else {
-      throw Abort(.badRequest)
+    try await withSpan("remove-deny-entry") { _ in
+      guard let subject = req.parameters.get("subject"), let service = req.parameters.get("service")
+      else {
+        throw Abort(.badRequest)
+      }
+      let actingUserSub = try await requireActingUserSub(req)
+      try await req.authAPI.removeDenyEntry(
+        subject: subject, service: service, actingUserSub: actingUserSub)
+      return req.redirectLocal(to: "/users")
     }
-    let actingUserSub = try await requireActingUserSub(req)
-    try await req.authAPI.removeDenyEntry(
-      subject: subject, service: service, actingUserSub: actingUserSub)
-    return req.redirectLocal(to: "/users")
   }
 
   /// Every mutating route needs the acting admin's `sub` to pass to `auth-api` for its audit

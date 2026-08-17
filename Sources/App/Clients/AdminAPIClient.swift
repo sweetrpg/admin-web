@@ -1,4 +1,5 @@
 import Foundation
+import Tracing
 import Vapor
 
 /// Matches `WriteAuth`'s expectation in `admin-api` exactly - the two repos are separate Swift/Go
@@ -44,13 +45,15 @@ struct AdminAPIClient {
   private static let scopesForListing = ["platform"]
 
   func listAll() async throws -> [Banner] {
-    var uri = URI(string: baseURL + "/banners")
-    var query = Self.scopesForListing.map { "scope=\($0)" }
-    query.append("include_inactive=true")
-    uri.query = query.joined(separator: "&")
-    let response = try await client.get(uri)
-    try Self.throwOnFailure(response)
-    return try response.content.decode([Banner].self)
+    try await withSpan("client-list-all-banners") { _ in
+      var uri = URI(string: baseURL + "/banners")
+      var query = Self.scopesForListing.map { "scope=\($0)" }
+      query.append("include_inactive=true")
+      uri.query = query.joined(separator: "&")
+      let response = try await client.get(uri)
+      try Self.throwOnFailure(response)
+      return try response.content.decode([Banner].self)
+    }
   }
 
   /// admin-api's `POST /banners` requires `created_by` in the body (`createBannerRequest`,
@@ -80,55 +83,63 @@ struct AdminAPIClient {
   }
 
   func create(_ input: BannerInput, actingUserSub: String) async throws -> Banner {
-    let body = CreateBannerRequestBody(
-      scopeType: input.scopeType,
-      scopeValue: input.scopeValue,
-      severity: input.severity,
-      message: input.message,
-      startsAt: input.startsAt,
-      expiresAt: input.expiresAt,
-      createdBy: actingUserSub
-    )
-    let response = try await post(
-      URI(string: baseURL + "/banners"), actingUserSub: actingUserSub
-    ) { req in
-      try req.content.encode(body)
+    try await withSpan("client-create-banner") { _ in
+      let body = CreateBannerRequestBody(
+        scopeType: input.scopeType,
+        scopeValue: input.scopeValue,
+        severity: input.severity,
+        message: input.message,
+        startsAt: input.startsAt,
+        expiresAt: input.expiresAt,
+        createdBy: actingUserSub
+      )
+      let response = try await post(
+        URI(string: baseURL + "/banners"), actingUserSub: actingUserSub
+      ) { req in
+        try req.content.encode(body)
+      }
+      try Self.throwOnFailure(response)
+      return try response.content.decode(Banner.self)
     }
-    try Self.throwOnFailure(response)
-    return try response.content.decode(Banner.self)
   }
 
   func update(id: String, _ input: BannerInput, actingUserSub: String) async throws -> Banner {
-    let response = try await put(
-      URI(string: baseURL + "/banners/\(id)"), actingUserSub: actingUserSub
-    ) { req in
-      try req.content.encode(input)
+    try await withSpan("client-update-banner") { _ in
+      let response = try await put(
+        URI(string: baseURL + "/banners/\(id)"), actingUserSub: actingUserSub
+      ) { req in
+        try req.content.encode(input)
+      }
+      try Self.throwOnFailure(response)
+      return try response.content.decode(Banner.self)
     }
-    try Self.throwOnFailure(response)
-    return try response.content.decode(Banner.self)
   }
 
   /// Expires a banner immediately by setting `expires_at` to now, per the admin spec's
   /// "Expire or delete a banner immediately" requirement - not a separate admin-api endpoint,
   /// just a PUT with the field set to the current time.
   func expireNow(_ banner: Banner, actingUserSub: String) async throws -> Banner {
-    try await update(
-      id: banner.id,
-      BannerInput(
-        scopeType: banner.scopeType,
-        scopeValue: banner.scopeValue,
-        severity: banner.severity,
-        message: banner.message,
-        startsAt: banner.startsAt,
-        expiresAt: Date()
-      ),
-      actingUserSub: actingUserSub)
+    try await withSpan("client-expire-now") { _ in
+      try await update(
+        id: banner.id,
+        BannerInput(
+          scopeType: banner.scopeType,
+          scopeValue: banner.scopeValue,
+          severity: banner.severity,
+          message: banner.message,
+          startsAt: banner.startsAt,
+          expiresAt: Date()
+        ),
+        actingUserSub: actingUserSub)
+    }
   }
 
   func delete(id: String, actingUserSub: String) async throws {
-    let response = try await delete(
-      URI(string: baseURL + "/banners/\(id)"), actingUserSub: actingUserSub)
-    try Self.throwOnFailure(response)
+    try await withSpan("client-delete-banner") { _ in
+      let response = try await delete(
+        URI(string: baseURL + "/banners/\(id)"), actingUserSub: actingUserSub)
+      try Self.throwOnFailure(response)
+    }
   }
 
   // MARK: - Request helpers
@@ -194,9 +205,11 @@ struct AdminAPIClient {
   /// unlike banners, this has a documented admin-listing shape from the start (see
   /// `server/maintenance_modes.go` in admin-api), no `include_inactive` workaround needed.
   func listAllMaintenanceModes() async throws -> [MaintenanceMode] {
-    let response = try await client.get(URI(string: baseURL + "/maintenance-modes"))
-    try Self.throwOnFailure(response)
-    return try response.content.decode([MaintenanceMode].self)
+    try await withSpan("client-list-all-maintenance-modes") { _ in
+      let response = try await client.get(URI(string: baseURL + "/maintenance-modes"))
+      try Self.throwOnFailure(response)
+      return try response.content.decode([MaintenanceMode].self)
+    }
   }
 
   /// Creates a record for `input`'s scope, or updates the existing record for that scope in
@@ -204,25 +217,29 @@ struct AdminAPIClient {
   func upsertMaintenanceMode(_ input: MaintenanceModeInput, actingUserSub: String) async throws
     -> MaintenanceMode
   {
-    let response = try await post(
-      URI(string: baseURL + "/maintenance-modes"), actingUserSub: actingUserSub
-    ) { req in
-      try req.content.encode(input)
+    try await withSpan("client-upsert-maintenance-mode") { _ in
+      let response = try await post(
+        URI(string: baseURL + "/maintenance-modes"), actingUserSub: actingUserSub
+      ) { req in
+        try req.content.encode(input)
+      }
+      try Self.throwOnFailure(response)
+      return try response.content.decode(MaintenanceMode.self)
     }
-    try Self.throwOnFailure(response)
-    return try response.content.decode(MaintenanceMode.self)
   }
 
   func updateMaintenanceMode(
     id: String, _ input: MaintenanceModeInput, actingUserSub: String
   ) async throws -> MaintenanceMode {
-    let response = try await put(
-      URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub
-    ) { req in
-      try req.content.encode(input)
+    try await withSpan("client-update-maintenance-mode") { _ in
+      let response = try await put(
+        URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub
+      ) { req in
+        try req.content.encode(input)
+      }
+      try Self.throwOnFailure(response)
+      return try response.content.decode(MaintenanceMode.self)
     }
-    try Self.throwOnFailure(response)
-    return try response.content.decode(MaintenanceMode.self)
   }
 
   /// Flips `enabled` without touching the rest of the record - the "direct enable/disable
@@ -231,24 +248,28 @@ struct AdminAPIClient {
   func setMaintenanceModeEnabled(
     _ mode: MaintenanceMode, enabled: Bool, actingUserSub: String
   ) async throws -> MaintenanceMode {
-    try await updateMaintenanceMode(
-      id: mode.id,
-      MaintenanceModeInput(
-        scopeType: mode.scopeType,
-        scopeValue: mode.scopeValue,
-        enabled: enabled,
-        startsAt: mode.startsAt,
-        endsAt: mode.endsAt,
-        label: mode.label,
-        description: mode.description
-      ),
-      actingUserSub: actingUserSub)
+    try await withSpan("client-set-maintenance-mode-enabled") { _ in
+      try await updateMaintenanceMode(
+        id: mode.id,
+        MaintenanceModeInput(
+          scopeType: mode.scopeType,
+          scopeValue: mode.scopeValue,
+          enabled: enabled,
+          startsAt: mode.startsAt,
+          endsAt: mode.endsAt,
+          label: mode.label,
+          description: mode.description
+        ),
+        actingUserSub: actingUserSub)
+    }
   }
 
   func deleteMaintenanceMode(id: String, actingUserSub: String) async throws {
-    let response = try await delete(
-      URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub)
-    try Self.throwOnFailure(response)
+    try await withSpan("client-delete-maintenance-mode") { _ in
+      let response = try await delete(
+        URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub)
+      try Self.throwOnFailure(response)
+    }
   }
 }
 
