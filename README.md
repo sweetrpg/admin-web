@@ -5,6 +5,7 @@
 [![Issues](https://img.shields.io/github/issues/sweetrpg/admin-web.svg)](https://img.shields.io/github/issues/sweetrpg/admin-web.svg)
 [![PRs](https://img.shields.io/github/issues-pr/sweetrpg/admin-web.svg)](https://img.shields.io/github/issues-pr/sweetrpg/admin-web.svg)
 [![Dependabot](https://badgen.net/github/dependabot/sweetrpg/admin-web)](https://badgen.net/github/dependabot/sweetrpg/admin-web)
+[![Deployment](https://argocd.dev.pilgrimagesoftware.com/api/badge?name=sweetrpg-admin-web&revision=true&showAppName=true&namespace=sweetrpg-system)](https://argocd.dev.pilgrimagesoftware.com/applications/sweetrpg-admin-web)
 
 [![Swift](https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white)
 
