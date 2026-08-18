@@ -6,6 +6,7 @@
 	<title>SweetRPG Admin</title>
 	<link rel="icon" type="image/png" href="#(meta.sharedURL)/static/img/admin/favicon.png">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/main.css">
+	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/admin/theme.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/avatar-menu.css">
 	<script>
 	/* Applied synchronously, before first paint, so the page never flashes the wrong theme.
