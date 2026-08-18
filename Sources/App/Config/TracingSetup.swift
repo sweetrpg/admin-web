@@ -1,7 +1,7 @@
+import Foundation
 import OTLPGRPC
 import OTel
 import ServiceLifecycle
-import Foundation
 import Tracing
 import Vapor
 
