@@ -1,4 +1,22 @@
 
+## 0.11.0 - 2026-08-18
+
+### Added
+- Add structured logging and OTel tracing
+
+
+### Documentation
+- Add ArgoCD deployment badge
+
+
+### Fixed
+- Remove duplicate logging bootstrap, guard tracing bootstrap
+- Actually propagate trace context to auth-api/users-api
+- Sort imports lexicographically in TracingSetup
+- Correct AUTH_API_URL/USERS_API_URL ports to 8000
+
+
+
 ## 0.10.0 - 2026-08-17
 
 ### Added

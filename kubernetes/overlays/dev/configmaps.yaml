@@ -16,8 +16,8 @@ data:
   REDIS_DB: "0"
   # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
-  USERS_API_URL: http://api-v1.sweetrpg-users.svc.cluster.local:8080
-  AUTH_API_URL: http://api-v1.sweetrpg-auth.svc.cluster.local:8080
+  USERS_API_URL: http://api-v1.sweetrpg-users.svc.cluster.local:8000
+  AUTH_API_URL: http://api-v1.sweetrpg-auth.svc.cluster.local:8000
   # Traefik strips /admin before the request reaches this app (see middlewares.yaml), so the
   # app's own routes are unprefixed - but every link/form/redirect it generates needs to add
   # /admin back so the *next* browser request round-trips through the ingress correctly. See
@@ -32,3 +32,8 @@ data:
   SHARED_URL: https://dev.sweetrpg.com/shared
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
+  # Tempo's distributor, same collector as the Go services (docs/service-conventions.md's
+  # Telemetry section), but port 4317 (gRPC) rather than their 4318 (HTTP) - see the comment in
+  # TracingSetup.swift for why (swift-otel only ships a gRPC exporter in the version pinned
+  # here).
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo-distributor.observability.svc.cluster.local:4317/

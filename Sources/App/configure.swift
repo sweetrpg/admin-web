@@ -1,5 +1,8 @@
 import Leaf
+import Logging
+import OTel
 import Redis
+import Tracing
 import Vapor
 
 // TODO: HEALTH_TOKEN-gated deep health check (see docs/service-conventions.md's Health checks
@@ -8,8 +11,22 @@ import Vapor
 // in admin-api), so a shallow liveness check is the honest answer for now.
 
 public func configure(_ app: Application) async throws {
+  // Structured JSON logging is bootstrapped once in entrypoint.swift, not here - LoggingSystem's
+  // bootstrap can only run once per process, and configure(_:) runs once per test case under
+  // swift-testing, which would crash on the second call.
+
+  // Bootstrap distributed tracing via OTLP/gRPC to the cluster's Tempo collector. Uses
+  // OTEL_EXPORTER_OTLP_ENDPOINT env var (same endpoint the Go services export to via HTTP,
+  // but this app uses gRPC per swift-otel's available transports).
+  try await TracingSetup.bootstrap(app)
   app.http.server.configuration.hostname = "0.0.0.0"
   app.http.server.configuration.port = Environment.get("PORT").flatMap(Int.init) ?? 8080
+
+  // Creates a server-kind span per request, extracting an inbound traceparent header if present.
+  // request.serviceContext is set for the request's duration, so outgoing calls via
+  // request.client (AsyncHTTPClient) automatically inject the current span's context into their
+  // own headers - see HTTPClientRequest+Prepared.swift upstream.
+  app.middleware.use(TracingMiddleware())
 
   app.views.use(.leaf)
 

@@ -5,6 +5,7 @@
 [![Issues](https://img.shields.io/github/issues/sweetrpg/admin-web.svg)](https://img.shields.io/github/issues/sweetrpg/admin-web.svg)
 [![PRs](https://img.shields.io/github/issues-pr/sweetrpg/admin-web.svg)](https://img.shields.io/github/issues-pr/sweetrpg/admin-web.svg)
 [![Dependabot](https://badgen.net/github/dependabot/sweetrpg/admin-web)](https://badgen.net/github/dependabot/sweetrpg/admin-web)
+[![Deployment](https://argocd.dev.pilgrimagesoftware.com/api/badge?name=sweetrpg-admin-web&revision=true&showAppName=true&namespace=sweetrpg-system)](https://argocd.dev.pilgrimagesoftware.com/applications/sweetrpg-admin-web)
 
 [![Swift](https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white)](https://img.shields.io/badge/Swift-F05138?style=for-the-badge&logo=swift&logoColor=white)
 
@@ -38,11 +39,6 @@ to do anything (see "Known gaps").
 
 ## Known gaps
 
-- **Auth0 application registration**: this app needs its own Auth0 application (client
-  id/secret, its own callback URL) registered in the same tenant catalog-web uses - a human with
-  Auth0 dashboard/Management API access needs to create it and populate
-  `kubernetes/overlays/dev/secrets.yaml`'s `AUTH0_*` keys (via the `sweetrpg-admin` Akeyless
-  path referenced there). Not something this codebase can do for itself.
 - **Admin listing endpoint**: `specs/banner-messages/spec.md` (in `sweetrpg/platform`'s
   `add-banner-messages` OpenSpec change) only documents `GET /banners` as a scoped, active-only
   query - there's no documented endpoint that returns every banner (including expired/scheduled
@@ -50,10 +46,6 @@ to do anything (see "Known gaps").
   calls `GET /banners?scope=platform&include_inactive=true` as a best-guess extension; confirm
   (or implement) this against a real admin-api deployment before trusting the list view to show
   more than currently-active banners. See `AdminAPIClient.swift`'s doc comment.
-- **ArgoCD webhook**: not yet configured on this repo - see `docs/git-repos.md` in
-  `sweetrpg/platform`. Needs the shared Akeyless-managed webhook secret, which this scaffolding
-  pass didn't have separate access to provision beyond what `repo-setup-standard` already
-  wires up.
 
 ## Contributing
 
