@@ -39,6 +39,12 @@
 			#else:
 				<a class="avatar-menu-item" href="#(meta.loginURL)">Log in</a>
 			#endif
+			<hr class="avatar-menu-divider">
+			<div id="avatar-menu-theme-row" class="avatar-menu-theme-row" role="group" aria-label="Theme">
+				<button type="button" class="avatar-menu-theme-option" data-theme-choice="light" aria-label="Light"></button>
+				<button type="button" class="avatar-menu-theme-option" data-theme-choice="dark" aria-label="Dark"></button>
+				<button type="button" class="avatar-menu-theme-option" data-theme-choice="system" aria-label="System"></button>
+			</div>
 		</div>
 	</div>
 </nav>
