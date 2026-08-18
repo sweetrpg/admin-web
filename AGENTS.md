@@ -29,17 +29,18 @@ catalog-web (no CORS concern for server-to-server calls).
 ### Backend dependencies
 
 - **admin-api**: banner messages - `POST/GET/PUT/DELETE /banners`. See `AdminAPIClient.swift`.
-  Write calls (`POST`/`PUT`/`DELETE`) are authenticated the same way as `users-api` below - a
-  shared `X-Internal-Service-Token` (`ADMIN_API_INTERNAL_SERVICE_TOKEN`) plus `X-Acting-User-Sub`
-  for audit attribution; `GET /banners` needs neither.
+  Write calls (`POST`/`PUT`/`DELETE`) forward the acting admin's own Auth0 access token (from the
+  shared session, see `SessionUser.accessToken`) as an `Authorization` bearer - `admin-api`
+  verifies it and checks the user's role itself, per `sweetrpg/platform`'s `api-client-auth`
+  change; `GET /banners` needs no credential.
 - **users-api**: minimal user identity listing (id/email) - `AdminUsersController`'s
-  `GET /api/admin/users`, called via `UsersAPIClient.swift`. Authenticated with a shared
-  `X-Internal-Service-Token` (`USERS_API_INTERNAL_SERVICE_TOKEN`), not an Auth0 bearer token -
-  this app never holds one of its own (see "Login and the shared session" below).
+  `GET /api/admin/users`, called via `UsersAPIClient.swift`. Same bearer-forwarding model as
+  admin-api above, not the shared `X-Internal-Service-Token` this app used to send.
 - **auth-api**: user roles and per-service deny entries, keyed by Auth0 subject -
   `RolesController`'s `/api/admin/roles`/`/api/admin/deny-entries` routes, called via
-  `AuthAPIClient.swift`. Authenticated the same way, with its own distinct
-  `AUTH_API_INTERNAL_SERVICE_TOKEN` (not shared with `USERS_API_INTERNAL_SERVICE_TOKEN`).
+  `AuthAPIClient.swift`. Still authenticated with the shared `X-Internal-Service-Token` model
+  (`AUTH_API_INTERNAL_SERVICE_TOKEN`) - `api-client-auth` covers admin-api and users-api only,
+  auth-api's own routes are a follow-up, not yet migrated.
   `UsersController.swift` composes this with `users-api`'s identity listing, joined by subject,
   since neither service alone has both halves of what the management UI needs to display - see
   `sweetrpg/platform`'s `split-authz-into-auth-api` change design.md.
@@ -86,12 +87,15 @@ Fails open (`nil`) on every error path.
 Revised from this app's original design (any authenticated user in the Auth0 tenant could manage
 banners): `AuthRequiredMiddleware` now requires the `admin` role, since this app also hosts the
 role/service-access management UI, a more sensitive surface than banner management alone. The
-`admin` role comes from the shared session's `roles` field, verified once by `users-api` at login
-time in `auth-web` - this app trusts that verification rather than re-checking per request (it
-never holds a bearer token to present to `users-api`'s `/authz/check` itself). Trade-off: a role
-revoked after login stays in effect until the session naturally expires or the user logs out and
-back in - see `AuthRequiredMiddleware.swift`'s doc comment for why re-verifying live isn't a
-better option here.
+`admin` role comes from the shared session's `roles` field, verified once by `auth-api` at login
+time in `auth-web` - this app trusts that verification for its own page-access gate rather than
+re-checking per request. The session's `accessToken` (see `SessionUser.swift`) is a separate,
+narrower use: forwarded as the bearer credential on outgoing `admin-api`/`users-api` calls, where
+those services independently re-verify it and check the role themselves - see "Backend
+dependencies" above. Trade-off on the page-access gate: a role revoked after login stays in
+effect until the session naturally expires or the user logs out and back in - see
+`AuthRequiredMiddleware.swift`'s doc comment for why re-verifying live isn't a better option
+here.
 
 ## Committing Code
 
@@ -113,9 +117,8 @@ swift format lint --recursive --strict Sources Tests
 `swift run` serves on `:8080`. Without `REDIS_HOST` set, every visitor reads as logged-out.
 Without `ADMIN_API_URL`/`USERS_API_URL`/`AUTH_API_URL` set, calls default to in-cluster DNS
 names that won't resolve outside the cluster - set them to reachable endpoints for local
-development. `USERS_API_INTERNAL_SERVICE_TOKEN` needs to match `users-api`'s own
-`INTERNAL_SERVICE_TOKEN`, or the identity listing call fails closed with a 500.
-`AUTH_API_INTERNAL_SERVICE_TOKEN` needs to match `auth-api`'s own `INTERNAL_SERVICE_TOKEN`
-(a distinct secret, not shared with `users-api`'s), or every role/deny-entry call fails closed
-with a 500. `ADMIN_API_INTERNAL_SERVICE_TOKEN` similarly needs to match `admin-api`'s own
-`INTERNAL_SERVICE_TOKEN`, or every banner write fails closed with a 500.
+development. `admin-api`/`users-api` calls now forward the session's `accessToken`, so those two
+services need `AUTH_API_URL` configured (to verify it) rather than a matching shared secret on
+this app's side. `AUTH_API_INTERNAL_SERVICE_TOKEN` still needs to match `auth-api`'s own
+`INTERNAL_SERVICE_TOKEN`, or every role/deny-entry call fails closed with a 500 - that surface
+hasn't migrated off the shared-secret model yet.

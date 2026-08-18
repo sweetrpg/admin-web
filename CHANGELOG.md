@@ -1,4 +1,11 @@
 
+## 0.13.0 - 2026-08-18
+
+### Added
+- Forward acting user's Auth0 token to admin-api/users-api
+
+
+
 ## 0.12.0 - 2026-08-18
 
 ### Added

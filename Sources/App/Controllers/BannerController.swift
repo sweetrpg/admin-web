@@ -76,7 +76,9 @@ struct BannerController: RouteCollection {
     try await withSpan("create-banner") { _ in
       let input = try Self.decodeInput(req)
       let actingUserSub = try await requireActingUserSub(req)
-      _ = try await req.adminAPI.create(input, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      _ = try await req.adminAPI.create(
+        input, actingUserSub: actingUserSub, accessToken: accessToken)
       return req.redirectLocal(to: "/")
     }
   }
@@ -86,8 +88,8 @@ struct BannerController: RouteCollection {
     try await withSpan("update-banner") { _ in
       guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
       let input = try Self.decodeInput(req)
-      let actingUserSub = try await requireActingUserSub(req)
-      _ = try await req.adminAPI.update(id: bannerID, input, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      _ = try await req.adminAPI.update(id: bannerID, input, accessToken: accessToken)
       return req.redirectLocal(to: "/")
     }
   }
@@ -100,8 +102,8 @@ struct BannerController: RouteCollection {
       guard let banner = banners.first(where: { $0.id == bannerID }) else {
         throw Abort(.notFound)
       }
-      let actingUserSub = try await requireActingUserSub(req)
-      _ = try await req.adminAPI.expireNow(banner, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      _ = try await req.adminAPI.expireNow(banner, accessToken: accessToken)
       return req.redirectLocal(to: "/")
     }
   }
@@ -110,8 +112,8 @@ struct BannerController: RouteCollection {
   func delete(req: Request) async throws -> Response {
     try await withSpan("delete-banner") { _ in
       guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
-      let actingUserSub = try await requireActingUserSub(req)
-      try await req.adminAPI.delete(id: bannerID, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      try await req.adminAPI.delete(id: bannerID, accessToken: accessToken)
       return req.redirectLocal(to: "/")
     }
   }
@@ -126,6 +128,16 @@ struct BannerController: RouteCollection {
       throw Abort(.internalServerError, reason: "No acting user session found")
     }
     return sub
+  }
+
+  /// Every mutating route forwards the acting admin's own Auth0 access token to `admin-api` as
+  /// the bearer credential - `admin-api` verifies it and checks the user's role itself. Should
+  /// never actually be nil here for the same reason as `requireActingUserSub` above.
+  private func requireAccessToken(_ req: Request) async throws -> String {
+    guard let token = (await req.currentUser)?.accessToken else {
+      throw Abort(.internalServerError, reason: "No acting user session found")
+    }
+    return token
   }
 
   /// Server-side mirror of the form's client-side validation - `expires_at` is required per the

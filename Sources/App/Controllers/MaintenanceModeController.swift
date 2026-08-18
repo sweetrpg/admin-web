@@ -84,8 +84,8 @@ struct MaintenanceModeController: RouteCollection {
   func upsert(req: Request) async throws -> Response {
     try await withSpan("upsert-maintenance-mode") { _ in
       let input = try Self.decodeInput(req)
-      let actingUserSub = try await requireActingUserSub(req)
-      _ = try await req.adminAPI.upsertMaintenanceMode(input, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      _ = try await req.adminAPI.upsertMaintenanceMode(input, accessToken: accessToken)
       return req.redirectLocal(to: "/maintenance-modes")
     }
   }
@@ -98,9 +98,9 @@ struct MaintenanceModeController: RouteCollection {
       guard let mode = records.first(where: { $0.id == modeID }) else {
         throw Abort(.notFound)
       }
-      let actingUserSub = try await requireActingUserSub(req)
+      let accessToken = try await requireAccessToken(req)
       _ = try await req.adminAPI.setMaintenanceModeEnabled(
-        mode, enabled: !mode.enabled, actingUserSub: actingUserSub)
+        mode, enabled: !mode.enabled, accessToken: accessToken)
       return req.redirectLocal(to: "/maintenance-modes")
     }
   }
@@ -109,20 +109,20 @@ struct MaintenanceModeController: RouteCollection {
   func delete(req: Request) async throws -> Response {
     try await withSpan("delete-maintenance-mode") { _ in
       guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
-      let actingUserSub = try await requireActingUserSub(req)
-      try await req.adminAPI.deleteMaintenanceMode(id: modeID, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      try await req.adminAPI.deleteMaintenanceMode(id: modeID, accessToken: accessToken)
       return req.redirectLocal(to: "/maintenance-modes")
     }
   }
 
-  /// Same rationale as `BannerController.requireActingUserSub`: `AuthRequiredMiddleware`
-  /// already guarantees a session here, so a nil sub means something is badly wrong rather
+  /// Same rationale as `BannerController.requireAccessToken`: `AuthRequiredMiddleware`
+  /// already guarantees a session here, so a nil token means something is badly wrong rather
   /// than a normal auth failure to handle gracefully.
-  private func requireActingUserSub(_ req: Request) async throws -> String {
-    guard let sub = (await req.currentUser)?.sub else {
+  private func requireAccessToken(_ req: Request) async throws -> String {
+    guard let token = (await req.currentUser)?.accessToken else {
       throw Abort(.internalServerError, reason: "No acting user session found")
     }
-    return sub
+    return token
   }
 
   private static func decodeInput(_ req: Request) throws -> MaintenanceModeInput {
