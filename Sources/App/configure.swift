@@ -22,6 +22,12 @@ public func configure(_ app: Application) async throws {
   app.http.server.configuration.hostname = "0.0.0.0"
   app.http.server.configuration.port = Environment.get("PORT").flatMap(Int.init) ?? 8080
 
+  // Creates a server-kind span per request, extracting an inbound traceparent header if present.
+  // request.serviceContext is set for the request's duration, so outgoing calls via
+  // request.client (AsyncHTTPClient) automatically inject the current span's context into their
+  // own headers - see HTTPClientRequest+Prepared.swift upstream.
+  app.middleware.use(TracingMiddleware())
+
   app.views.use(.leaf)
 
   app.middleware.use(SentryMiddleware())
