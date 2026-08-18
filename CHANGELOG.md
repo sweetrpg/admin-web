@@ -1,4 +1,11 @@
 
+## 0.13.1 - 2026-08-18
+
+### Fixed
+- Render build info as a span, not an h6
+
+
+
 ## 0.13.0 - 2026-08-18
 
 ### Added
