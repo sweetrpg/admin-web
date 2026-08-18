@@ -11,11 +11,9 @@ import Vapor
 // in admin-api), so a shallow liveness check is the honest answer for now.
 
 public func configure(_ app: Application) async throws {
-  // Bootstrap structured JSON logging, matching the Go services' convention. Reads LOG_LEVEL
-  // env var (swift-log names: trace/debug/info/notice/warning/error/critical), defaults to info.
-  let logLevelStr = Environment.get("LOG_LEVEL") ?? "info"
-  let logLevel = Logger.Level(rawValue: logLevelStr) ?? .info
-  LoggingSystem.bootstrapJSON(minimumLevel: logLevel)
+  // Structured JSON logging is bootstrapped once in entrypoint.swift, not here - LoggingSystem's
+  // bootstrap can only run once per process, and configure(_:) runs once per test case under
+  // swift-testing, which would crash on the second call.
 
   // Bootstrap distributed tracing via OTLP/gRPC to the cluster's Tempo collector. Uses
   // OTEL_EXPORTER_OTLP_ENDPOINT env var (same endpoint the Go services export to via HTTP,

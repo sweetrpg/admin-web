@@ -1,6 +1,7 @@
 import OTLPGRPC
 import OTel
 import ServiceLifecycle
+import Foundation
 import Tracing
 import Vapor
 
@@ -11,7 +12,21 @@ import Vapor
 /// collector's gRPC receiver (typically :4317) isn't enabled, traces from this app won't arrive
 /// even though the endpoint variable is shared with the Go services' HTTP receiver (:4318).
 enum TracingSetup {
+  // InstrumentationSystem.bootstrap can only run once per process. The real binary only calls
+  // this once (from configure(_:), itself called once from entrypoint.swift), but swift-testing
+  // runs every @Test in the same process, and several tests build their own Application via
+  // withApp(configure: configure) - without this guard the second one crashes the whole suite.
+  private static let lock = NSLock()
+  private static nonisolated(unsafe) var hasBootstrapped = false
+
   static func bootstrap(_ app: Application) async throws {
+    let alreadyBootstrapped = lock.withLock {
+      let was = hasBootstrapped
+      hasBootstrapped = true
+      return was
+    }
+    guard !alreadyBootstrapped else { return }
+
     let environment = OTelEnvironment.detected()
     let resourceDetection = OTelResourceDetection(detectors: [
       OTelProcessResourceDetector(),
