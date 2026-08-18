@@ -1,4 +1,12 @@
 
+## 0.12.0 - 2026-08-18
+
+### Added
+- Add admin theme stylesheet to base template
+- Add theme-toggle UI to admin-web
+
+
+
 ## 0.11.0 - 2026-08-18
 
 ### Added

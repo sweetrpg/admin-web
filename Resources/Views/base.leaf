@@ -6,11 +6,11 @@
 	<title>SweetRPG Admin</title>
 	<link rel="icon" type="image/png" href="#(meta.sharedURL)/static/img/admin/favicon.png">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/main.css">
+	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/admin/theme.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/avatar-menu.css">
 	<script>
-	/* Applied synchronously, before first paint, so the page never flashes the wrong theme.
-	   Reads the same localStorage key main-web's theme toggle writes - this app has no toggle
-	   of its own, it only ever respects whatever the visitor already chose there. */
+	/* Applied synchronously, before first paint, so the page never flashes the wrong theme
+	   while theme.js (deferred) loads. */
 	(function () {
 	  var stored = null;
 	  try { stored = localStorage.getItem('sweetrpg_theme_v1'); } catch (e) {}
@@ -27,5 +27,6 @@
 	</main>
 	#extend("partials/footer")
 	<script src="#(meta.sharedURL)/static/js/avatar-menu.js" defer></script>
+	<script src="#(meta.sharedURL)/static/js/theme.js" defer></script>
 </body>
 </html>
