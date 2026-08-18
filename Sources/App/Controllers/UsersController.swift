@@ -27,7 +27,8 @@ struct UsersController: RouteCollection {
   @Sendable
   func list(req: Request) async throws -> View {
     try await withSpan("list-users") { _ in
-      let identities = try await req.usersAPI.listUsers()
+      let accessToken = try await requireAccessToken(req)
+      let identities = try await req.usersAPI.listUsers(accessToken: accessToken)
       // Role/deny-entry management needs a subject to act on - a user with no Auth0 LoginProfile
       // yet (shouldn't normally happen; Auth0 is the platform's sole login mechanism) has nothing
       // to compose against and is left out rather than shown with broken controls.
@@ -119,5 +120,15 @@ struct UsersController: RouteCollection {
       throw Abort(.internalServerError, reason: "No acting user session found")
     }
     return sub
+  }
+
+  /// `users-api`'s identity listing forwards the acting admin's own Auth0 access token as the
+  /// bearer credential - `users-api` verifies it and checks the user's role itself. Same
+  /// fail-loudly rationale as `requireActingUserSub` above.
+  private func requireAccessToken(_ req: Request) async throws -> String {
+    guard let token = (await req.currentUser)?.accessToken else {
+      throw Abort(.internalServerError, reason: "No acting user session found")
+    }
+    return token
   }
 }

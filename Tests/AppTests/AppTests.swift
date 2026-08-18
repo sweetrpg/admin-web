@@ -243,6 +243,7 @@ struct AppTests {
         let user = LeafUser(
           SessionUser(
             sub: "abc123", name: "Alice Example", email: "alice@example.com", roles: ["admin"],
+            accessToken: "test-access-token",
             expiry: Date().addingTimeInterval(3600)))
         return try await req.view.render(
           "partials/header", HeaderContext(user: user, meta: PageMeta(req)))
@@ -290,7 +291,7 @@ struct AppTests {
     // .deferredToDate default would expect.
     let json = """
       {"sub":"auth0|abc","name":"Ada","email":"ada@example.com","roles":["admin"],\
-      "expiry":"2027-01-15T08:00:00Z"}
+      "accessToken":"test-access-token","expiry":"2027-01-15T08:00:00Z"}
       """
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601

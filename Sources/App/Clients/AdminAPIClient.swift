@@ -2,17 +2,6 @@ import Foundation
 import Tracing
 import Vapor
 
-/// Matches `WriteAuth`'s expectation in `admin-api` exactly - the two repos are separate Swift/Go
-/// packages, so this can't be a shared import, only a matched string constant. See
-/// `UsersAPIClient.swift` for the identical pattern against `users-api`.
-private let internalServiceTokenHeaderName = "X-Internal-Service-Token"
-
-/// Matches `middleware.WriteAuth`'s expectation exactly - the acting admin's Auth0 `sub`,
-/// required on every mutating call so `admin-api` can attribute its audit log entry. `admin-api`
-/// fails the request closed if this is missing or empty; see that repo's
-/// `server/middleware/writeauth.go` and `models/audit.go`.
-private let actingUserSubHeaderName = "X-Acting-User-Sub"
-
 /// Thin client for admin-api's `/banners` CRUD surface.
 ///
 /// OPEN QUESTION (see this repo's README "Known gaps" section and the OpenSpec change's task
@@ -28,18 +17,17 @@ private let actingUserSubHeaderName = "X-Acting-User-Sub"
 /// the full set the spec calls for. Don't build further UI assuming this parameter works without
 /// confirming against a real admin-api deployment first.
 ///
-/// Every *mutating* call presents `X-Internal-Service-Token` and `X-Acting-User-Sub`, matching
-/// `admin-api`'s `WriteAuth` middleware contract - `GET /banners` needs neither, same scoping as
-/// `admin-api`'s own read/write split. See `AdminAPIConfig.swift`.
+/// Every *mutating* call presents the acting user's own Auth0 access token as an `Authorization`
+/// bearer, matching `admin-api`'s `WriteAuth` middleware contract - `admin-api` verifies it and
+/// checks the user's role itself, rather than trusting this app's identity. `GET /banners` needs
+/// no credential, same scoping as `admin-api`'s own read/write split.
 struct AdminAPIClient {
   let client: Client
   let baseURL: String
-  let internalServiceToken: String?
 
   init(request: Request) {
     self.client = request.client
     self.baseURL = request.adminAPIConfig.baseURL
-    self.internalServiceToken = request.adminAPIConfig.internalServiceToken
   }
 
   private static let scopesForListing = ["platform"]
@@ -82,7 +70,9 @@ struct AdminAPIClient {
     }
   }
 
-  func create(_ input: BannerInput, actingUserSub: String) async throws -> Banner {
+  func create(_ input: BannerInput, actingUserSub: String, accessToken: String) async throws
+    -> Banner
+  {
     try await withSpan("client-create-banner") { _ in
       let body = CreateBannerRequestBody(
         scopeType: input.scopeType,
@@ -94,7 +84,7 @@ struct AdminAPIClient {
         createdBy: actingUserSub
       )
       let response = try await post(
-        URI(string: baseURL + "/banners"), actingUserSub: actingUserSub
+        URI(string: baseURL + "/banners"), accessToken: accessToken
       ) { req in
         try req.content.encode(body)
       }
@@ -103,10 +93,10 @@ struct AdminAPIClient {
     }
   }
 
-  func update(id: String, _ input: BannerInput, actingUserSub: String) async throws -> Banner {
+  func update(id: String, _ input: BannerInput, accessToken: String) async throws -> Banner {
     try await withSpan("client-update-banner") { _ in
       let response = try await put(
-        URI(string: baseURL + "/banners/\(id)"), actingUserSub: actingUserSub
+        URI(string: baseURL + "/banners/\(id)"), accessToken: accessToken
       ) { req in
         try req.content.encode(input)
       }
@@ -118,7 +108,7 @@ struct AdminAPIClient {
   /// Expires a banner immediately by setting `expires_at` to now, per the admin spec's
   /// "Expire or delete a banner immediately" requirement - not a separate admin-api endpoint,
   /// just a PUT with the field set to the current time.
-  func expireNow(_ banner: Banner, actingUserSub: String) async throws -> Banner {
+  func expireNow(_ banner: Banner, accessToken: String) async throws -> Banner {
     try await withSpan("client-expire-now") { _ in
       try await update(
         id: banner.id,
@@ -130,65 +120,47 @@ struct AdminAPIClient {
           startsAt: banner.startsAt,
           expiresAt: Date()
         ),
-        actingUserSub: actingUserSub)
+        accessToken: accessToken)
     }
   }
 
-  func delete(id: String, actingUserSub: String) async throws {
+  func delete(id: String, accessToken: String) async throws {
     try await withSpan("client-delete-banner") { _ in
       let response = try await delete(
-        URI(string: baseURL + "/banners/\(id)"), actingUserSub: actingUserSub)
+        URI(string: baseURL + "/banners/\(id)"), accessToken: accessToken)
       try Self.throwOnFailure(response)
     }
   }
 
   // MARK: - Request helpers
 
-  /// Fails closed when `ADMIN_API_INTERNAL_SERVICE_TOKEN` is unset, rather than sending an
-  /// unauthenticated request `admin-api` would reject anyway - a clearer error for whoever's
-  /// debugging a missing-config deployment than a generic 401 from the other service.
-  private func requireToken() throws -> String {
-    guard let token = internalServiceToken else {
-      throw Abort(
-        .internalServerError,
-        reason: "ADMIN_API_INTERNAL_SERVICE_TOKEN is not configured")
-    }
-    return token
-  }
-
   private func post(
-    _ uri: URI, actingUserSub: String,
+    _ uri: URI, accessToken: String,
     beforeSend: @escaping (inout ClientRequest) throws -> Void = { _ in }
   )
     async throws -> ClientResponse
   {
-    let token = try requireToken()
-    return try await client.post(uri) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+    try await client.post(uri) { req in
+      req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
       try beforeSend(&req)
     }
   }
 
   private func put(
-    _ uri: URI, actingUserSub: String,
+    _ uri: URI, accessToken: String,
     beforeSend: @escaping (inout ClientRequest) throws -> Void = { _ in }
   )
     async throws -> ClientResponse
   {
-    let token = try requireToken()
-    return try await client.put(uri) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+    try await client.put(uri) { req in
+      req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
       try beforeSend(&req)
     }
   }
 
-  private func delete(_ uri: URI, actingUserSub: String) async throws -> ClientResponse {
-    let token = try requireToken()
-    return try await client.delete(uri) { req in
-      req.headers.replaceOrAdd(name: internalServiceTokenHeaderName, value: token)
-      req.headers.replaceOrAdd(name: actingUserSubHeaderName, value: actingUserSub)
+  private func delete(_ uri: URI, accessToken: String) async throws -> ClientResponse {
+    try await client.delete(uri) { req in
+      req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
     }
   }
 
@@ -214,12 +186,12 @@ struct AdminAPIClient {
 
   /// Creates a record for `input`'s scope, or updates the existing record for that scope in
   /// place if one already exists - admin-api enforces at most one record per scope.
-  func upsertMaintenanceMode(_ input: MaintenanceModeInput, actingUserSub: String) async throws
+  func upsertMaintenanceMode(_ input: MaintenanceModeInput, accessToken: String) async throws
     -> MaintenanceMode
   {
     try await withSpan("client-upsert-maintenance-mode") { _ in
       let response = try await post(
-        URI(string: baseURL + "/maintenance-modes"), actingUserSub: actingUserSub
+        URI(string: baseURL + "/maintenance-modes"), accessToken: accessToken
       ) { req in
         try req.content.encode(input)
       }
@@ -229,11 +201,11 @@ struct AdminAPIClient {
   }
 
   func updateMaintenanceMode(
-    id: String, _ input: MaintenanceModeInput, actingUserSub: String
+    id: String, _ input: MaintenanceModeInput, accessToken: String
   ) async throws -> MaintenanceMode {
     try await withSpan("client-update-maintenance-mode") { _ in
       let response = try await put(
-        URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub
+        URI(string: baseURL + "/maintenance-modes/\(id)"), accessToken: accessToken
       ) { req in
         try req.content.encode(input)
       }
@@ -246,7 +218,7 @@ struct AdminAPIClient {
   /// toggle" from tasks.md 2.4, so an admin doesn't have to open the full edit form just to
   /// flip the gate.
   func setMaintenanceModeEnabled(
-    _ mode: MaintenanceMode, enabled: Bool, actingUserSub: String
+    _ mode: MaintenanceMode, enabled: Bool, accessToken: String
   ) async throws -> MaintenanceMode {
     try await withSpan("client-set-maintenance-mode-enabled") { _ in
       try await updateMaintenanceMode(
@@ -260,14 +232,14 @@ struct AdminAPIClient {
           label: mode.label,
           description: mode.description
         ),
-        actingUserSub: actingUserSub)
+        accessToken: accessToken)
     }
   }
 
-  func deleteMaintenanceMode(id: String, actingUserSub: String) async throws {
+  func deleteMaintenanceMode(id: String, accessToken: String) async throws {
     try await withSpan("client-delete-maintenance-mode") { _ in
       let response = try await delete(
-        URI(string: baseURL + "/maintenance-modes/\(id)"), actingUserSub: actingUserSub)
+        URI(string: baseURL + "/maintenance-modes/\(id)"), accessToken: accessToken)
       try Self.throwOnFailure(response)
     }
   }
