@@ -1,5 +1,8 @@
 import Leaf
+import Logging
+import OTel
 import Redis
+import Tracing
 import Vapor
 
 // TODO: HEALTH_TOKEN-gated deep health check (see docs/service-conventions.md's Health checks
@@ -8,6 +11,16 @@ import Vapor
 // in admin-api), so a shallow liveness check is the honest answer for now.
 
 public func configure(_ app: Application) async throws {
+  // Bootstrap structured JSON logging, matching the Go services' convention. Reads LOG_LEVEL
+  // env var (swift-log names: trace/debug/info/notice/warning/error/critical), defaults to info.
+  let logLevelStr = Environment.get("LOG_LEVEL") ?? "info"
+  let logLevel = Logger.Level(rawValue: logLevelStr) ?? .info
+  LoggingSystem.bootstrapJSON(minimumLevel: logLevel)
+
+  // Bootstrap distributed tracing via OTLP/gRPC to the cluster's Tempo collector. Uses
+  // OTEL_EXPORTER_OTLP_ENDPOINT env var (same endpoint the Go services export to via HTTP,
+  // but this app uses gRPC per swift-otel's available transports).
+  try await TracingSetup.bootstrap(app)
   app.http.server.configuration.hostname = "0.0.0.0"
   app.http.server.configuration.port = Environment.get("PORT").flatMap(Int.init) ?? 8080
 

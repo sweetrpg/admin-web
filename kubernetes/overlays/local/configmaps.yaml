@@ -26,3 +26,5 @@ data:
   SHARED_URL: https://sweetrpg.local/shared
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
+  # Tempo's distributor, same as dev overlay (observability stack is environment-independent).
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo-distributor.observability.svc.cluster.local:4317/

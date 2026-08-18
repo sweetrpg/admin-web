@@ -32,3 +32,8 @@ data:
   SHARED_URL: https://dev.sweetrpg.com/shared
   BUILD_INFO_PATH: /app/config/build-info.json
   LOG_LEVEL: info
+  # Tempo's distributor, same collector as the Go services (docs/service-conventions.md's
+  # Telemetry section), but port 4317 (gRPC) rather than their 4318 (HTTP) - see the comment in
+  # TracingSetup.swift for why (swift-otel only ships a gRPC exporter in the version pinned
+  # here).
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo-distributor.observability.svc.cluster.local:4317/
