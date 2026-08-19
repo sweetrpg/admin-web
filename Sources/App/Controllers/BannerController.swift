@@ -55,6 +55,7 @@ struct BannerController: RouteCollection {
       guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
       let banners = try await req.adminAPI.listAll()
       guard let banner = banners.first(where: { $0.id == bannerID }) else {
+        req.logger.warning("editForm: banner \(bannerID) not found")
         throw Abort(.notFound)
       }
       return try await req.view.render(
@@ -77,8 +78,11 @@ struct BannerController: RouteCollection {
       let input = try Self.decodeInput(req)
       let actingUserSub = try await requireActingUserSub(req)
       let accessToken = try await requireAccessToken(req)
-      _ = try await req.adminAPI.create(
+      let created = try await req.adminAPI.create(
         input, actingUserSub: actingUserSub, accessToken: accessToken)
+      req.logger.info(
+        "create: \(actingUserSub) created banner \(created.id) (\(input.scopeType.rawValue) \(input.scopeValue))"
+      )
       return req.redirectLocal(to: "/")
     }
   }
@@ -90,6 +94,7 @@ struct BannerController: RouteCollection {
       let input = try Self.decodeInput(req)
       let accessToken = try await requireAccessToken(req)
       _ = try await req.adminAPI.update(id: bannerID, input, accessToken: accessToken)
+      req.logger.info("update: banner \(bannerID) updated")
       return req.redirectLocal(to: "/")
     }
   }
@@ -100,10 +105,12 @@ struct BannerController: RouteCollection {
       guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
       let banners = try await req.adminAPI.listAll()
       guard let banner = banners.first(where: { $0.id == bannerID }) else {
+        req.logger.warning("expire: banner \(bannerID) not found")
         throw Abort(.notFound)
       }
       let accessToken = try await requireAccessToken(req)
       _ = try await req.adminAPI.expireNow(banner, accessToken: accessToken)
+      req.logger.info("expire: banner \(bannerID) expired immediately")
       return req.redirectLocal(to: "/")
     }
   }
@@ -114,6 +121,7 @@ struct BannerController: RouteCollection {
       guard let bannerID = req.parameters.get("bannerID") else { throw Abort(.badRequest) }
       let accessToken = try await requireAccessToken(req)
       try await req.adminAPI.delete(id: bannerID, accessToken: accessToken)
+      req.logger.info("delete: banner \(bannerID) deleted")
       return req.redirectLocal(to: "/")
     }
   }
