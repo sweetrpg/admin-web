@@ -1,4 +1,12 @@
 
+## 0.14.0 - 2026-08-19
+
+### Added
+- Update page title to Administration
+- Add controller-level logging for every mutation and not-found path
+
+
+
 ## 0.13.1 - 2026-08-18
 
 ### Fixed
