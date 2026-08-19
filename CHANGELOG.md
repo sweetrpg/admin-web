@@ -1,4 +1,11 @@
 
+## 0.15.0 - 2026-08-19
+
+### Added
+- Add app switcher grid next to avatar menu
+
+
+
 ## 0.14.0 - 2026-08-19
 
 
