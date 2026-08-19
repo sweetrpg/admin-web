@@ -9,7 +9,7 @@ data:
   ENV: local
   PORT: "8080"
   # auth-web's own dedicated Redis instance - see dev overlay's comment.
-  REDIS_HOST: redis.sweetrpg-auth.svc.cluster.local
+  REDIS_HOST: cache.sweetrpg-auth.svc.cluster.local
   REDIS_PORT: "6379"
   REDIS_DB: "0"
   # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
