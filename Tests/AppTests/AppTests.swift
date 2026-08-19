@@ -263,6 +263,27 @@ struct AppTests {
     }
   }
 
+  @Test("header renders the app switcher with four destinations and no admin link")
+  func headerRendersAppSwitcher() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-header") { req async throws -> View in
+        try await req.view.render(
+          "partials/header", HeaderContext(user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-header") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("app-switcher-trigger"))
+        #expect(body.contains(#"href="/">Main"#))
+        #expect(body.contains(#"href="/catalog">Catalog"#))
+        #expect(body.contains(#"href="/shelf">Shelf"#))
+        #expect(body.contains(#"href="/initiative">Initiative"#))
+        #expect(!body.contains(#"app-switcher-item" href="/admin""#))
+      }
+    }
+  }
+
   @Test("header falls back to the mystery-man avatar when logged out")
   func headerRendersLoggedOutFallback() async throws {
     try await withApp { app in
