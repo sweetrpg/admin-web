@@ -36,6 +36,12 @@ struct UsersController: RouteCollection {
         guard let subject = identity.subject else { return nil }
         return (identity, subject)
       }
+      let skipped = identities.count - withSubject.count
+      if skipped > 0 {
+        req.logger.warning(
+          "list: \(skipped) of \(identities.count) users-api identities have no Auth0 subject, omitted from the list"
+        )
+      }
       let rolesBySubject = Dictionary(
         uniqueKeysWithValues: try await req.authAPI.listRoles(subjects: withSubject.map(\.1))
           .map { ($0.subject, $0) })
@@ -67,6 +73,8 @@ struct UsersController: RouteCollection {
       let form = try req.content.decode(RoleForm.self)
       let actingUserSub = try await requireActingUserSub(req)
       try await req.authAPI.addRole(subject: subject, role: form.role, actingUserSub: actingUserSub)
+      req.logger.info(
+        "addRole: \(actingUserSub) added role \(form.role) to \(subject)")
       return req.redirectLocal(to: "/users")
     }
   }
@@ -80,6 +88,8 @@ struct UsersController: RouteCollection {
       }
       let actingUserSub = try await requireActingUserSub(req)
       try await req.authAPI.removeRole(subject: subject, role: role, actingUserSub: actingUserSub)
+      req.logger.info(
+        "removeRole: \(actingUserSub) removed role \(role) from \(subject)")
       return req.redirectLocal(to: "/users")
     }
   }
@@ -93,6 +103,8 @@ struct UsersController: RouteCollection {
       let actingUserSub = try await requireActingUserSub(req)
       try await req.authAPI.addDenyEntry(
         subject: subject, service: form.service, actingUserSub: actingUserSub)
+      req.logger.info(
+        "addDenyEntry: \(actingUserSub) denied \(subject) access to \(form.service)")
       return req.redirectLocal(to: "/users")
     }
   }
@@ -107,6 +119,8 @@ struct UsersController: RouteCollection {
       let actingUserSub = try await requireActingUserSub(req)
       try await req.authAPI.removeDenyEntry(
         subject: subject, service: service, actingUserSub: actingUserSub)
+      req.logger.info(
+        "removeDenyEntry: \(actingUserSub) restored \(subject) access to \(service)")
       return req.redirectLocal(to: "/users")
     }
   }

@@ -86,6 +86,9 @@ struct MaintenanceModeController: RouteCollection {
       let input = try Self.decodeInput(req)
       let accessToken = try await requireAccessToken(req)
       _ = try await req.adminAPI.upsertMaintenanceMode(input, accessToken: accessToken)
+      req.logger.info(
+        "upsert: maintenance mode set for \(input.scopeType.rawValue) \(input.scopeValue), enabled=\(input.enabled)"
+      )
       return req.redirectLocal(to: "/maintenance-modes")
     }
   }
@@ -96,11 +99,14 @@ struct MaintenanceModeController: RouteCollection {
       guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
       let records = try await req.adminAPI.listAllMaintenanceModes()
       guard let mode = records.first(where: { $0.id == modeID }) else {
+        req.logger.warning("toggle: maintenance mode \(modeID) not found")
         throw Abort(.notFound)
       }
       let accessToken = try await requireAccessToken(req)
+      let newEnabled = !mode.enabled
       _ = try await req.adminAPI.setMaintenanceModeEnabled(
-        mode, enabled: !mode.enabled, accessToken: accessToken)
+        mode, enabled: newEnabled, accessToken: accessToken)
+      req.logger.info("toggle: maintenance mode \(modeID) set to enabled=\(newEnabled)")
       return req.redirectLocal(to: "/maintenance-modes")
     }
   }
@@ -111,6 +117,7 @@ struct MaintenanceModeController: RouteCollection {
       guard let modeID = req.parameters.get("modeID") else { throw Abort(.badRequest) }
       let accessToken = try await requireAccessToken(req)
       try await req.adminAPI.deleteMaintenanceMode(id: modeID, accessToken: accessToken)
+      req.logger.info("delete: maintenance mode \(modeID) deleted")
       return req.redirectLocal(to: "/maintenance-modes")
     }
   }
