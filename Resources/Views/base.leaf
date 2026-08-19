@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/main.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/admin/theme.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/avatar-menu.css">
+	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/app-switcher.css">
 	<script>
 	/* Applied synchronously, before first paint, so the page never flashes the wrong theme
 	   while theme.js (deferred) loads. */
@@ -27,6 +28,7 @@
 	</main>
 	#extend("partials/footer")
 	<script src="#(meta.sharedURL)/static/js/avatar-menu.js" defer></script>
+	<script src="#(meta.sharedURL)/static/js/app-switcher.js" defer></script>
 	<script src="#(meta.sharedURL)/static/js/theme.js" defer></script>
 </body>
 </html>
