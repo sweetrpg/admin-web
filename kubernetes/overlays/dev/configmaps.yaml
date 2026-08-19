@@ -11,7 +11,7 @@ data:
   # auth-web's own dedicated Redis instance in sweetrpg-auth - its session store this app reads
   # (never writes). Unset means every visitor reads as logged-out, not a startup failure. See
   # docs/frontend-conventions.md's "Per-namespace Redis instances" section (sweetrpg/platform).
-  REDIS_HOST: redis.sweetrpg-auth.svc.cluster.local
+  REDIS_HOST: cache.sweetrpg-auth.svc.cluster.local
   REDIS_PORT: "6379"
   REDIS_DB: "0"
   # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
