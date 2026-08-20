@@ -22,6 +22,9 @@ let package = Package(
         .package(url: "https://github.com/swift-otel/swift-otel.git", from: "0.8.0"),
         // 📊 Prometheus metrics.
         .package(url: "https://github.com/swift-server/swift-prometheus.git", from: "2.0.0"),
+        // 🌍 Localization - real CLDR-style plural rules, not hand-rolled string logic. Same
+        // package catalog-web uses; see Resources/Localizations/en.json.
+        .package(url: "https://github.com/vapor-community/Lingo-Vapor.git", from: "4.2.0"),
     ],
     targets: [
         .executableTarget(
@@ -35,6 +38,7 @@ let package = Package(
                 .product(name: "Tracing", package: "swift-distributed-tracing"),
                 .product(name: "OTel", package: "swift-otel"),
                 .product(name: "OTLPGRPC", package: "swift-otel"),
+                .product(name: "LingoVapor", package: "Lingo-Vapor"),
             ],
             // Resources/ is shipped as a plain directory next to the built binary (see
             // Dockerfile), not via SwiftPM resource bundling - Vapor's default Leaf resolution
