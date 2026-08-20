@@ -71,4 +71,16 @@ enum KnownServiceScope {
   static let all = [
     "main", "catalog", "assets", "auth", "directory", "initiative", "shelf", "users", "shared",
   ]
+
+  /// Maps a raw scope value (the internal identifier this app persists and sends to admin-api)
+  /// to a display-friendly, localized name via `maintenance.scope.<value>`. No fallback
+  /// humanization: Lingo's own documented behavior on a missing key is to return the key
+  /// string unchanged, and that's deliberately left as-is here - a raw `maintenance.scope.x`
+  /// bleeding through the UI is a visible signal that a translation entry is missing, not
+  /// something worth papering over with a guessed display string.
+  static func displayName(for scope: String, req: Request) -> String {
+    let lingo = try? req.application.lingoVapor.lingo()
+    let key = "maintenance.scope.\(scope)"
+    return lingo?.localize(key, locale: lingo?.defaultLocale ?? "en") ?? key
+  }
 }

@@ -1,4 +1,5 @@
 import Leaf
+import LingoVapor
 import Logging
 import OTel
 import Redis
@@ -29,6 +30,15 @@ public func configure(_ app: Application) async throws {
   app.middleware.use(TracingMiddleware())
 
   app.views.use(.leaf)
+
+  // English only for now (no prior locale need in this app) - real CLDR-style plural rules via
+  // Resources/Localizations/*.json, not hand-rolled string logic. Add a locale by dropping
+  // another <code>.json file in that directory. Use lingo.defaultLocale at call sites, not
+  // req.locale (LingoVapor's own property reads session.data, which this app never populates -
+  // see SessionUserAccess.swift's doc comment on why SessionsMiddleware is deliberately never
+  // registered here).
+  app.lingoVapor.configuration = .init(
+    defaultLocale: "en", localizationsDir: "Resources/Localizations")
 
   app.middleware.use(SentryMiddleware())
 
