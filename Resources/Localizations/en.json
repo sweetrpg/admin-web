@@ -1,0 +1,12 @@
+{
+  "maintenance.scope.platform": "Platform (all apps)",
+  "maintenance.scope.main": "Main",
+  "maintenance.scope.catalog": "Catalog",
+  "maintenance.scope.assets": "Assets",
+  "maintenance.scope.auth": "Auth",
+  "maintenance.scope.directory": "Directory",
+  "maintenance.scope.initiative": "Initiative",
+  "maintenance.scope.shelf": "Shelf",
+  "maintenance.scope.users": "Users",
+  "maintenance.scope.shared": "Shared"
+}

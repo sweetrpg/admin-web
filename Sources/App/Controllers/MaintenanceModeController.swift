@@ -26,12 +26,14 @@ struct MaintenanceModeController: RouteCollection {
 
       var rows: [LeafMaintenanceScopeRow] = [
         LeafMaintenanceScopeRow(
-          scopeType: .platform, scopeValue: "", displayName: "Platform (all apps)",
+          scopeType: .platform, scopeValue: "",
+          displayName: KnownServiceScope.displayName(for: "platform", req: req),
           record: byScope[scopeKey(type: .platform, value: "")])
       ]
       rows += KnownServiceScope.all.map { service in
         LeafMaintenanceScopeRow(
-          scopeType: .service, scopeValue: service, displayName: service,
+          scopeType: .service, scopeValue: service,
+          displayName: KnownServiceScope.displayName(for: service, req: req),
           record: byScope[scopeKey(type: .service, value: service)])
       }
 
@@ -69,7 +71,9 @@ struct MaintenanceModeController: RouteCollection {
         "maintenance-modes/form",
         MaintenanceModeFormContext(
           formAction: "\(req.basePath)/maintenance-modes",
-          displayName: scopeType == .platform ? "Platform (all apps)" : scopeValue,
+          displayName: scopeType == .platform
+            ? KnownServiceScope.displayName(for: "platform", req: req)
+            : KnownServiceScope.displayName(for: scopeValue, req: req),
           scopeType: scopeType.rawValue,
           scopeValue: scopeValue,
           isEdit: existing != nil,
