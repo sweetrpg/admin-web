@@ -1,4 +1,11 @@
 
+## 0.16.1 - 2026-08-21
+
+### Fixed
+- Fix cpu resource limit quantity that never matched ArgoCD's applied manifest
+
+
+
 ## 0.16.0 - 2026-08-20
 
 ### Added
