@@ -4,7 +4,7 @@
 			<img src="#(meta.sharedURL)/static/img/sweetrpg-logo-black.svg" alt="SweetRPG" class="nav-logo nav-logo-light">
 			<img src="#(meta.sharedURL)/static/img/sweetrpg-logo-white.svg" alt="SweetRPG" class="nav-logo nav-logo-dark">
 		</a>
-		<a href="#(meta.basePath)/">SweetRPG Admin</a>
+		<a href="#(meta.basePath)/">Administration</a>
 	</div>
 	<a href="#(meta.basePath)/">Banners</a>
 	<a href="#(meta.basePath)/maintenance-modes">Maintenance</a>
@@ -21,6 +21,7 @@
 		<div class="app-switcher-panel" hidden>
 			<a class="app-switcher-item" href="/">Main</a>
 			<a class="app-switcher-item" href="/catalog">Catalog</a>
+            <a class="app-switcher-item" href="/gamesystems">Game Systems</a>
 			<a class="app-switcher-item" href="/shelf">Shelf</a>
 			<a class="app-switcher-item" href="/initiative">Initiative</a>
 		</div>

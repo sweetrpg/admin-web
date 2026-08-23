@@ -38,6 +38,9 @@ struct UsersListContext: Content {
   let users: [LeafUserSummary]
   let isEmpty: Bool
   let allRoles: [String]
+  /// True when the users-api/auth-api composition failed - the page renders a clear
+  /// "unavailable" state instead of a raw 500 error page.
+  let unavailable: Bool
   let user: LeafUser?
   let meta: PageMeta
 }
