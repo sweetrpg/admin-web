@@ -1,4 +1,13 @@
 
+## 0.17.0 - 2026-08-23
+
+### Added
+- Add Game Systems link to app switcher
+- Change admin link text to Administration
+- Scope value hint and graceful users page error state (refs #22)
+
+
+
 ## 0.16.1 - 2026-08-21
 
 ### Fixed
