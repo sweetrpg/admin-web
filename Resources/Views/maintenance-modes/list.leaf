@@ -1,18 +1,18 @@
 #extend("base"):
 	#export("body"):
 		<section class="page-header">
-			<span class="section-label">Manage</span>
-			<h2>Maintenance Modes</h2>
+			<span class="section-label">#(meta.l10n.maintenance_page_section_label)</span>
+			<h2>#(meta.l10n.maintenance_page_title)</h2>
 		</section>
 
 		<table class="table">
 			<thead>
 				<tr>
-					<th>Scope</th>
-					<th>Status</th>
-					<th>Label</th>
-					<th>Starts</th>
-					<th>Ends</th>
+					<th>#(meta.l10n.maintenance_column_scope)</th>
+					<th>#(meta.l10n.maintenance_column_status)</th>
+					<th>#(meta.l10n.maintenance_column_label)</th>
+					<th>#(meta.l10n.maintenance_column_starts)</th>
+					<th>#(meta.l10n.maintenance_column_ends)</th>
 					<th></th>
 				</tr>
 			</thead>
@@ -23,15 +23,15 @@
 						<td>
 							#if(row.configured):
 								#if(row.enabled):
-									<span class="tag tag-critical">Maintenance</span>
+									<span class="tag tag-critical">#(meta.l10n.maintenance_status_enabled)</span>
 								#else:
-									<span class="tag tag-outline">Off</span>
+									<span class="tag tag-outline">#(meta.l10n.maintenance_status_off)</span>
 								#endif
 								#if(row.isStale):
-									<span class="tag tag-status-expired">Past end date</span>
+									<span class="tag tag-status-expired">#(meta.l10n.maintenance_status_past_end_date)</span>
 								#endif
 							#else:
-								<span class="tag tag-outline">Not configured</span>
+								<span class="tag tag-outline">#(meta.l10n.maintenance_status_not_configured)</span>
 							#endif
 						</td>
 						<td>#(row.label)</td>
@@ -39,14 +39,14 @@
 						<td title="#(row.endsAtRfc)">#(row.endsAtLabel)</td>
 						<td class="table-actions">
 							<a class="btn btn-ghost" href="#(meta.basePath)/maintenance-modes/edit?scope_type=#(row.scopeType)&scope_value=#(row.scopeValue)">
-								#if(row.configured): Edit #else: Configure #endif
+								#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.maintenance_action_configure) #endif
 							</a>
 							#if(row.configured):
 								<form action="#(meta.basePath)/maintenance-modes/#(row.id)/toggle" method="post" style="display:inline">
-									<button type="submit" class="btn btn-ghost">#if(row.enabled): Disable #else: Enable #endif</button>
+									<button type="submit" class="btn btn-ghost">#if(row.enabled): #(meta.l10n.maintenance_action_disable) #else: #(meta.l10n.maintenance_action_enable) #endif</button>
 								</form>
 								<form action="#(meta.basePath)/maintenance-modes/#(row.id)/delete" method="post" style="display:inline">
-									<button type="submit" class="btn btn-ghost">Delete</button>
+									<button type="submit" class="btn btn-ghost">#(meta.l10n.common_action_delete)</button>
 								</form>
 							#endif
 						</td>

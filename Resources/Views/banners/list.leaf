@@ -1,23 +1,23 @@
 #extend("base"):
 	#export("body"):
 		<section class="page-header">
-			<span class="section-label">Manage</span>
-			<h2>Banner Messages</h2>
-			<a class="btn btn-primary" href="#(meta.basePath)/banners/new">New Banner</a>
+			<span class="section-label">#(meta.l10n.banners_page_section_label)</span>
+			<h2>#(meta.l10n.banners_page_title)</h2>
+			<a class="btn btn-primary" href="#(meta.basePath)/banners/new">#(meta.l10n.banners_action_new)</a>
 		</section>
 
 		#if(isEmpty):
-			<p class="empty-state">No banner messages yet.</p>
+			<p class="empty-state">#(meta.l10n.banners_empty)</p>
 		#endif
 
 		<table class="table">
 			<thead>
 				<tr>
-					<th>Scope</th>
-					<th>Severity</th>
-					<th>Status</th>
-					<th>Message</th>
-					<th>Expires</th>
+					<th>#(meta.l10n.banners_column_scope)</th>
+					<th>#(meta.l10n.banners_column_severity)</th>
+					<th>#(meta.l10n.banners_column_status)</th>
+					<th>#(meta.l10n.banners_column_message)</th>
+					<th>#(meta.l10n.banners_column_expires)</th>
 					<th></th>
 				</tr>
 			</thead>
@@ -30,12 +30,12 @@
 						<td>#(banner.message)</td>
 						<td>#(banner.expiresAtLabel)</td>
 						<td class="table-actions">
-							<a class="btn btn-ghost" href="#(meta.basePath)/banners/#(banner.id)/edit">Edit</a>
+							<a class="btn btn-ghost" href="#(meta.basePath)/banners/#(banner.id)/edit">#(meta.l10n.common_action_edit)</a>
 							<form action="#(meta.basePath)/banners/#(banner.id)/expire" method="post" style="display:inline">
-								<button type="submit" class="btn btn-ghost">Expire now</button>
+								<button type="submit" class="btn btn-ghost">#(meta.l10n.banners_action_expire_now)</button>
 							</form>
 							<form action="#(meta.basePath)/banners/#(banner.id)/delete" method="post" style="display:inline">
-								<button type="submit" class="btn btn-ghost">Delete</button>
+								<button type="submit" class="btn btn-ghost">#(meta.l10n.common_action_delete)</button>
 							</form>
 						</td>
 					</tr>

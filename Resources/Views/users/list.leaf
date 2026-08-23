@@ -1,16 +1,16 @@
 #extend("base"):
 	#export("body"):
 		<section class="page-header">
-			<span class="section-label">Manage</span>
-			<h2>Users</h2>
+			<span class="section-label">#(meta.l10n.users_page_section_label)</span>
+			<h2>#(meta.l10n.users_page_title)</h2>
 		</section>
 
 		#if(unavailable):
-			<p class="empty-state">The user list is not available right now - the backend user directory could not be reached. Try again later.</p>
+			<p class="empty-state">#(meta.l10n.users_unavailable)</p>
 		#endif
 
 		#if(isEmpty):
-			<p class="empty-state">No users yet.</p>
+			<p class="empty-state">#(meta.l10n.users_empty)</p>
 		#endif
 
 		#if(!unavailable):
@@ -18,9 +18,9 @@
 		<table class="table">
 			<thead>
 				<tr>
-					<th>Email</th>
-					<th>Roles</th>
-					<th>Denied services</th>
+					<th>#(meta.l10n.users_column_email)</th>
+					<th>#(meta.l10n.users_column_roles)</th>
+					<th>#(meta.l10n.users_column_denied_services)</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -31,7 +31,7 @@
 							#for(role in u.roles):
 								<span class="tag">#(role)
 									<form action="#(meta.basePath)/users/#(u.id)/roles/#(role)/remove" method="post" style="display:inline">
-										<button type="submit" class="btn btn-ghost btn-icon" aria-label="Remove #(role) role">&times;</button>
+										<button type="submit" class="btn btn-ghost btn-icon" aria-label="#(meta.l10n.users_remove_role_prefix)#(role)#(meta.l10n.users_remove_role_suffix)">&times;</button>
 									</form>
 								</span>
 							#endfor
@@ -42,7 +42,7 @@
 											<option value="#(role)">#(role)</option>
 										#endfor
 									</select>
-									<button type="submit" class="btn btn-ghost">Add role</button>
+									<button type="submit" class="btn btn-ghost">#(meta.l10n.users_action_add_role)</button>
 								</form>
 							#endif
 						</td>
@@ -50,13 +50,13 @@
 							#for(service in u.deniedServices):
 								<span class="tag tag-critical">#(service)
 									<form action="#(meta.basePath)/users/#(u.id)/deny-entries/#(service)/remove" method="post" style="display:inline">
-										<button type="submit" class="btn btn-ghost btn-icon" aria-label="Remove deny entry for #(service)">&times;</button>
+										<button type="submit" class="btn btn-ghost btn-icon" aria-label="#(meta.l10n.users_remove_deny_prefix)#(service)#(meta.l10n.users_remove_deny_suffix)">&times;</button>
 									</form>
 								</span>
 							#endfor
 							<form action="#(meta.basePath)/users/#(u.id)/deny-entries" method="post" style="display:inline-block">
-								<input type="text" name="service" placeholder="service name" required>
-								<button type="submit" class="btn btn-ghost">Deny service</button>
+								<input type="text" name="service" placeholder="#(meta.l10n.users_placeholder_service_name)" required>
+								<button type="submit" class="btn btn-ghost">#(meta.l10n.users_action_deny_service)</button>
 							</form>
 						</td>
 					</tr>
