@@ -9,31 +9,23 @@
 			<input type="hidden" name="scope_type" value="#(scopeType)">
 			<input type="hidden" name="scope_value" value="#(scopeValue)">
 
-			<label class="form-label" title="#(meta.l10n.maintenance_hint_enabled_title)">
+			<label class="form-label" for="enabled" title="#(meta.l10n.maintenance_hint_enabled_title)">
 				<input type="checkbox" id="enabled" name="enabled" value="true" #if(mode.enabled): checked #endif>
 				#(meta.l10n.maintenance_field_enabled)
 			</label>
 
-			<label class="form-label" for="label">
-				<input class="input" type="text" id="label" name="label" placeholder="#(meta.l10n.maintenance_placeholder_label)" value="#(mode.label)" required>
-				#(meta.l10n.maintenance_field_label)
-			</label>
+			<label class="form-label" for="label">#(meta.l10n.maintenance_field_label)</label>
+			<input class="input" type="text" id="label" name="label" placeholder="#(meta.l10n.maintenance_placeholder_label)" value="#(mode.label)" required>
 
-	 		<label class="form-label" for="description">
-                <textarea class="input" id="description" name="description" rows="3" placeholder="#(meta.l10n.maintenance_placeholder_description)" required>#(mode.description)</textarea>
-				#(meta.l10n.maintenance_field_description)
-				</label>
+			<label class="form-label" for="description">#(meta.l10n.maintenance_field_description)</label>
+			<textarea class="input" id="description" name="description" rows="3" placeholder="#(meta.l10n.maintenance_placeholder_description)" required>#(mode.description)</textarea>
 
-			<label class="form-label" for="starts_at">
-            	<input class="input" type="datetime-local" id="starts_at" name="starts_at" value="#(mode.startsAt)" required>
-    			<p class="form-error" id="starts-error" style="display:none">#(meta.l10n.maintenance_error_starts_required)</p>
-    			#(meta.l10n.maintenance_field_starts_at)
-			</label>
+			<label class="form-label" for="starts_at">#(meta.l10n.maintenance_field_starts_at)</label>
+			<input class="input" type="datetime-local" id="starts_at" name="starts_at" value="#(mode.startsAt)" required>
+			<p class="form-error" id="starts-error" style="display:none">#(meta.l10n.maintenance_error_starts_required)</p>
 
-			<label class="form-label" for="ends_at">
-				<input class="input" type="datetime-local" id="ends_at" name="ends_at" value="#(mode.endsAt)">
-				#(meta.l10n.maintenance_field_ends_at)
-			</label>
+			<label class="form-label" for="ends_at">#(meta.l10n.maintenance_field_ends_at)</label>
+			<input class="input" type="datetime-local" id="ends_at" name="ends_at" value="#(mode.endsAt)">
 
 			<div class="form-actions">
 				<button type="submit" class="btn btn-primary">#(meta.l10n.common_save)</button>
