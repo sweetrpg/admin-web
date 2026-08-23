@@ -61,6 +61,7 @@ struct AppTests {
             users: [summary],
             isEmpty: false,
             allRoles: UsersController.allRoles,
+            unavailable: false,
             user: nil,
             meta: PageMeta(req)
           ))
@@ -256,9 +257,10 @@ struct AppTests {
         #expect(body.contains(#"class="avatar-menu-email">alice@example.com"#))
         #expect(body.contains(#"href="/users">User Settings"#))
         #expect(body.contains(#"action="/auth/logout?return_to=/test-header" method="post""#))
-        // No self-referential "Administration" item - this app already gates entry on the
-        // admin role, unlike catalog-web/main-web where the avatar menu links out to admin-web.
-        #expect(!body.contains("Administration"))
+        // f70df121d renamed the nav-brand link text to "Administration"; the avatar menu itself
+        // still has no self-referential "Administration" item - its entries are only
+        // User Settings / Log out / the theme row.
+        #expect(body.contains(#">Administration</a>"#))
       }
     }
   }
