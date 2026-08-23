@@ -27,42 +27,60 @@ struct UsersController: RouteCollection {
   @Sendable
   func list(req: Request) async throws -> View {
     try await withSpan("list-users") { _ in
-      let accessToken = try await requireAccessToken(req)
-      let identities = try await req.usersAPI.listUsers(accessToken: accessToken)
-      // Role/deny-entry management needs a subject to act on - a user with no Auth0 LoginProfile
-      // yet (shouldn't normally happen; Auth0 is the platform's sole login mechanism) has nothing
-      // to compose against and is left out rather than shown with broken controls.
-      let withSubject = identities.compactMap { identity -> (UserIdentity, String)? in
-        guard let subject = identity.subject else { return nil }
-        return (identity, subject)
+      do {
+        return try await renderList(req: req)
+      } catch {
+        // Backend composition failure (users-api identity listing or auth-api roles) should not
+        // surface as a raw 500 error page - render the page shell with a clear unavailable state.
+        req.logger.error("list: backend composition failed: \(error)")
+        return try await req.view.render(
+          "users/list",
+          UsersListContext(
+            users: [], isEmpty: false, allRoles: Self.allRoles, unavailable: true,
+            user: (await req.currentUser).map(LeafUser.init),
+            meta: PageMeta(req)
+          ))
       }
-      let skipped = identities.count - withSubject.count
-      if skipped > 0 {
-        req.logger.warning(
-          "list: \(skipped) of \(identities.count) users-api identities have no Auth0 subject, omitted from the list"
-        )
-      }
-      let rolesBySubject = Dictionary(
-        uniqueKeysWithValues: try await req.authAPI.listRoles(subjects: withSubject.map(\.1))
-          .map { ($0.subject, $0) })
-
-      let summaries = withSubject.map { identity, subject -> LeafUserSummary in
-        let roles = rolesBySubject[subject]
-        return LeafUserSummary(
-          subject: subject, email: identity.email, roles: roles?.roles ?? ["user"],
-          deniedServices: roles?.deniedServices ?? [])
-      }
-
-      return try await req.view.render(
-        "users/list",
-        UsersListContext(
-          users: summaries,
-          isEmpty: summaries.isEmpty,
-          allRoles: Self.allRoles,
-          user: (await req.currentUser).map(LeafUser.init),
-          meta: PageMeta(req)
-        ))
     }
+  }
+
+  private func renderList(req: Request) async throws -> View {
+    let accessToken = try await requireAccessToken(req)
+    let identities = try await req.usersAPI.listUsers(accessToken: accessToken)
+    // Role/deny-entry management needs a subject to act on - a user with no Auth0 LoginProfile
+    // yet (shouldn't normally happen; Auth0 is the platform's sole login mechanism) has nothing
+    // to compose against and is left out rather than shown with broken controls.
+    let withSubject = identities.compactMap { identity -> (UserIdentity, String)? in
+      guard let subject = identity.subject else { return nil }
+      return (identity, subject)
+    }
+    let skipped = identities.count - withSubject.count
+    if skipped > 0 {
+      req.logger.warning(
+        "list: \(skipped) of \(identities.count) users-api identities have no Auth0 subject, omitted from the list"
+      )
+    }
+    let rolesBySubject = Dictionary(
+      uniqueKeysWithValues: try await req.authAPI.listRoles(subjects: withSubject.map(\.1))
+        .map { ($0.subject, $0) })
+
+    let summaries = withSubject.map { identity, subject -> LeafUserSummary in
+      let roles = rolesBySubject[subject]
+      return LeafUserSummary(
+        subject: subject, email: identity.email, roles: roles?.roles ?? ["user"],
+        deniedServices: roles?.deniedServices ?? [])
+    }
+
+    return try await req.view.render(
+      "users/list",
+      UsersListContext(
+        users: summaries,
+        isEmpty: summaries.isEmpty,
+        allRoles: Self.allRoles,
+        unavailable: false,
+        user: (await req.currentUser).map(LeafUser.init),
+        meta: PageMeta(req)
+      ))
   }
 
   @Sendable
