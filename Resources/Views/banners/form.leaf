@@ -15,6 +15,7 @@
 
 			<label class="form-label" for="scope_value">Scope value</label>
 			<input class="input" type="text" id="scope_value" name="scope_value" placeholder="e.g. catalog or /catalog/browse (leave blank for platform scope)" value="#(banner.scopeValue)">
+			<p class="form-hint">A service name (e.g. catalog) or a path (e.g. /catalog/browse). Leave blank for platform-wide scope.</p>
 
 			<label class="form-label" for="severity">Severity</label>
 			<select class="input" id="severity" name="severity" required>
