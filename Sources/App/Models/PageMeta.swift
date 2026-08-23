@@ -24,6 +24,9 @@ struct PageMeta: Content {
   /// admin-web, so an "Administration" item linking to itself would be redundant - every
   /// visitor who reaches it already cleared `AuthRequiredMiddleware`'s `admin` role check.
   let userSettingsURL: String
+  /// Translations for the current request's resolved locale (cookie -> Accept-Language -> en),
+  /// interpolated in Leaf templates as `#(meta.l10n.<key>)` - see I18n.swift.
+  let l10n: [String: String]
 
   init(_ req: Request) {
     self.basePath = req.basePath
@@ -38,5 +41,6 @@ struct PageMeta: Content {
     self.loginURL = "/auth/login?return_to=\(encodedReturnTo)"
     self.logoutURL = "/auth/logout?return_to=\(encodedReturnTo)"
     self.userSettingsURL = "/users"
+    self.l10n = req.l10n
   }
 }
