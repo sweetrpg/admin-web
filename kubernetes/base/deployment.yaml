@@ -28,6 +28,8 @@ spec:
                 version: v1
             annotations:
                 reloader.stakater.com/auto: "true"
+                openfeature.dev/enabled: "true"
+                openfeature.dev/featureflagsource: "sweetrpg-system/admin-web"
         spec:
             serviceAccountName: web
             enableServiceLinks: false
