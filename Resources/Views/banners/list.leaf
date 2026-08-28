@@ -6,10 +6,6 @@
 			<a class="btn btn-primary" href="#(meta.basePath)/banners/new">#(meta.l10n.banners_action_new)</a>
 		</section>
 
-		#if(isEmpty):
-			<p class="empty-state">#(meta.l10n.banners_empty)</p>
-		#endif
-
 		<table class="table">
 			<thead>
 				<tr>
@@ -22,6 +18,11 @@
 				</tr>
 			</thead>
 			<tbody>
+				#if(isEmpty):
+					<tr>
+						<td class="empty-state table-empty" colspan="6">#(meta.l10n.banners_empty)</td>
+					</tr>
+				#endif
 				#for(banner in banners):
 					<tr>
 						<td>#(banner.scopeLabel)</td>
