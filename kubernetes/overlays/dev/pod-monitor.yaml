@@ -12,10 +12,10 @@ spec:
     - port: http
   selector:
     matchLabels:
-        platform: sweetrpg
-        app: web
-        package: admin
-        component: web
+        app.kubernetes.io/name: admin-web
+        app.kubernetes.io/version: v1
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: admin
   namespaceSelector:
     matchNames:
       - sweetrpg-admin
