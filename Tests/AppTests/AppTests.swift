@@ -265,7 +265,7 @@ struct AppTests {
     }
   }
 
-  @Test("header renders the app switcher with four destinations and no admin link")
+  @Test("header renders the app switcher with five destinations and no admin link")
   func headerRendersAppSwitcher() async throws {
     try await withApp { app in
       app.views.use(.leaf)
@@ -279,7 +279,8 @@ struct AppTests {
         #expect(body.contains("app-switcher-trigger"))
         #expect(body.contains(#"href="/">Main"#))
         #expect(body.contains(#"href="/catalog">Catalog"#))
-        #expect(body.contains(#"href="/shelf">Shelf"#))
+        #expect(body.contains(#"href="/game-room">Game Room"#))
+        #expect(body.contains(#"href="/game-systems">Game Systems"#))
         #expect(body.contains(#"href="/initiative">Initiative"#))
         #expect(!body.contains(#"app-switcher-item" href="/admin""#))
       }
