@@ -1,4 +1,11 @@
 
+## 0.18.2 - 2026-08-28
+
+### Fixed
+- Move empty-state message below table header, centered
+
+
+
 ## 0.18.1 - 2026-08-28
 
 ### Fixed
