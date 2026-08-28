@@ -23,7 +23,6 @@ spec:
                 app.kubernetes.io/version: v1
                 app.kubernetes.io/component: web
                 app.kubernetes.io/part-of: admin
-                com.sweetrpg/env: local
             annotations:
                 reloader.stakater.com/auto: "true"
                 openfeature.dev/enabled: "true"
