@@ -7,11 +7,10 @@ metadata:
 
 spec:
     selector:
-        app: web
-        version: v1
-        platform: sweetrpg
-        package: admin
-        component: web
+        app.kubernetes.io/name: admin-web
+        app.kubernetes.io/version: v1
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: admin
     type: ClusterIP
     ports:
         - name: http
