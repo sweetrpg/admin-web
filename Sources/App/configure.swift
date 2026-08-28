@@ -40,6 +40,10 @@ public func configure(_ app: Application) async throws {
   app.lingoVapor.configuration = .init(
     defaultLocale: "en", localizationsDir: "Resources/Localizations")
 
+  // Loads the flat dotted-key tables I18n.swift serves to templates via `req.l10n` /
+  // `#(meta.l10n.<key>)` - see I18n.swift and the AGENTS.md Localization section.
+  try I18n.loadTables()
+
   app.middleware.use(SentryMiddleware())
 
   app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))

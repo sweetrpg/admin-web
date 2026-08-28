@@ -34,7 +34,7 @@ catalog-web (no CORS concern for server-to-server calls).
   verifies it and checks the user's role itself, per `sweetrpg/platform`'s `api-client-auth`
   change; `GET /banners` needs no credential.
 - **users-api**: minimal user identity listing (id/email) - `AdminUsersController`'s
-  `GET /api/admin/users`, called via `UsersAPIClient.swift`. Same bearer-forwarding model as
+  `GET /admin/users`, called via `UsersAPIClient.swift`. Same bearer-forwarding model as
   admin-api above, not the shared `X-Internal-Service-Token` this app used to send.
 - **auth-api**: user roles and per-service deny entries, keyed by Auth0 subject -
   `RolesController`'s `/api/admin/roles`/`/api/admin/deny-entries` routes, called via
@@ -96,6 +96,26 @@ dependencies" above. Trade-off on the page-access gate: a role revoked after log
 effect until the session naturally expires or the user logs out and back in - see
 `AuthRequiredMiddleware.swift`'s doc comment for why re-verifying live isn't a better option
 here.
+
+## Localization
+
+Implemented per sweetrpg/platform's `full-localization-web-apps` OpenSpec change.
+
+- **LingoVapor** is wired in `configure.swift` (`defaultLocale: "en"`, localizations dir
+  `Resources/Localizations/`) for controller-side lookups (`maintenance.scope.*` keys).
+- Every user-facing template string lives in `Resources/Localizations/<code>.json` as a flat
+  dotted key (e.g. `banners.column.scope`). English (`en.json`) is the default and fallback.
+- Locale resolution per request (`I18n.swift`): the `locale` cookie, then the first tag of the
+  `Accept-Language` header's base subtag, then `"en"`. Tables are loaded once at startup and
+  exposed to templates through `PageMeta.l10n`.
+- In Leaf templates, interpolate translations as `#(meta.l10n.<key>)` (dots in JSON keys become
+  underscores at lookup time). For interpolated strings like "Remove #(role) role", use
+  prefix/suffix key pairs so Leaf interpolates between two translated fragments.
+- To add a locale, drop a `<code>.json` next to `en.json` - resolution picks it up with no code
+  changes. Missing keys render empty; keep `en.json` complete.
+- CI enforces this: `scripts/check-template-strings.sh` (run by the `locale-lint` job in
+  `.github/workflows/ci.yaml` and `pr.yaml`) fails on hardcoded user-facing text in any
+  `Resources/Views/**/*.leaf` outside an allowlist of brand names and the footer build line.
 
 ## Committing Code
 

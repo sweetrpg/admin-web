@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Administration</title>
+	<title>#(meta.l10n.nav_title)</title>
 	<link rel="icon" type="image/png" href="#(meta.sharedURL)/static/img/admin/favicon.png">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/main.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/admin/theme.css">

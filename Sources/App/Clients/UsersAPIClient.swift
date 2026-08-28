@@ -2,7 +2,7 @@ import Tracing
 import Vapor
 
 /// A user's identity, as returned by `users-api`'s `AdminUsersController`
-/// (`GET /api/admin/users`). `subject` is the Auth0 `sub` this user last logged in with (from
+/// (`GET /admin/users`). `subject` is the Auth0 `sub` this user last logged in with (from
 /// `LoginProfile`) - the key `auth-api`'s role/deny-entry data is stored under, `nil` if this
 /// user has no Auth0 `LoginProfile` yet.
 struct UserIdentity: Content {
@@ -30,7 +30,7 @@ struct UsersAPIClient {
 
   func listUsers(accessToken: String) async throws -> [UserIdentity] {
     try await withSpan("client-list-users") { _ in
-      let response = try await client.get(URI(string: baseURL + "/api/admin/users")) { req in
+      let response = try await client.get(URI(string: baseURL + "/admin/users")) { req in
         req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
       }
       guard (200..<300).contains(response.status.code) else {
