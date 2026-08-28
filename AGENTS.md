@@ -34,7 +34,7 @@ catalog-web (no CORS concern for server-to-server calls).
   verifies it and checks the user's role itself, per `sweetrpg/platform`'s `api-client-auth`
   change; `GET /banners` needs no credential.
 - **users-api**: minimal user identity listing (id/email) - `AdminUsersController`'s
-  `GET /api/admin/users`, called via `UsersAPIClient.swift`. Same bearer-forwarding model as
+  `GET /admin/users`, called via `UsersAPIClient.swift`. Same bearer-forwarding model as
   admin-api above, not the shared `X-Internal-Service-Token` this app used to send.
 - **auth-api**: user roles and per-service deny entries, keyed by Auth0 subject -
   `RolesController`'s `/api/admin/roles`/`/api/admin/deny-entries` routes, called via
