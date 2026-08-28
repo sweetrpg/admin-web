@@ -17,6 +17,8 @@ labels:
       app.kubernetes.io/component: web
       app.kubernetes.io/part-of: admin
       com.sweetrpg/env: local
+    includeSelectors: false
+    includeTemplates: true
 
 generatorOptions:
   disableNameSuffixHash: true

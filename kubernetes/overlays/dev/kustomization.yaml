@@ -22,7 +22,7 @@ labels:
       app.kubernetes.io/component: web
       app.kubernetes.io/part-of: admin
       com.sweetrpg/env: dev
-    includeSelectors: true
+    includeSelectors: false
     includeTemplates: true
 
 generatorOptions:
