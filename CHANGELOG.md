@@ -1,4 +1,11 @@
 
+## 0.18.3 - 2026-08-28
+
+### Fixed
+- Align app-switcher destinations with the shared spec
+
+
+
 ## 0.18.2 - 2026-08-28
 
 ### Fixed
