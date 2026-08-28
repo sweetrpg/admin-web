@@ -255,7 +255,7 @@ struct AppTests {
         #expect(body.contains(#"class="avatar-menu-trigger""#))
         #expect(body.contains(#"class="avatar-menu-name">Alice Example"#))
         #expect(body.contains(#"class="avatar-menu-email">alice@example.com"#))
-        #expect(body.contains(#"href="/users">User Settings"#))
+        #expect(body.contains(#"href="/users/profile">User Settings"#))
         #expect(body.contains(#"action="/auth/logout?return_to=/test-header" method="post""#))
         // f70df121d renamed the nav-brand link text to "Administration"; the avatar menu itself
         // still has no self-referential "Administration" item - its entries are only

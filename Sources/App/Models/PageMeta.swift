@@ -19,8 +19,8 @@ struct PageMeta: Content {
   let loginURL: String
   let logoutURL: String
   /// Fixed path on the shared `dev.sweetrpg.com` host, matching catalog-web's/main-web's own
-  /// avatar menu convention (`suite-avatar-menu` OpenSpec change) - 404s until `users-web`
-  /// ships, a separate, already-tracked gap. No `adminURL` here unlike those two: this app *is*
+  /// avatar menu convention (`suite-avatar-menu` OpenSpec change). No `adminURL` here unlike
+  /// those two: this app *is*
   /// admin-web, so an "Administration" item linking to itself would be redundant - every
   /// visitor who reaches it already cleared `AuthRequiredMiddleware`'s `admin` role check.
   let userSettingsURL: String
@@ -40,7 +40,7 @@ struct PageMeta: Content {
       returnTo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "/"
     self.loginURL = "/auth/login?return_to=\(encodedReturnTo)"
     self.logoutURL = "/auth/logout?return_to=\(encodedReturnTo)"
-    self.userSettingsURL = "/users"
+    self.userSettingsURL = "/users/profile"
     self.l10n = req.l10n
   }
 }
