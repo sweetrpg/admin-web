@@ -21,8 +21,8 @@
 		<div class="app-switcher-panel" hidden>
 			<a class="app-switcher-item" href="/">#(meta.l10n.menu_main)</a>
 			<a class="app-switcher-item" href="/catalog">#(meta.l10n.menu_catalog)</a>
-            <a class="app-switcher-item" href="/gamesystems">#(meta.l10n.menu_game_systems)</a>
-			<a class="app-switcher-item" href="/shelf">#(meta.l10n.menu_shelf)</a>
+			<a class="app-switcher-item" href="/game-room">#(meta.l10n.menu_game_room)</a>
+			<a class="app-switcher-item" href="/game-systems">#(meta.l10n.menu_game_systems)</a>
 			<a class="app-switcher-item" href="/initiative">#(meta.l10n.menu_initiative)</a>
 		</div>
 	</div>
