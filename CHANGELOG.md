@@ -1,4 +1,17 @@
 
+## 0.18.0 - 2026-08-28
+
+### Added
+- Extract user-facing strings into locale resources
+- Add flagd annotations
+
+
+### Fixed
+- Move field labels above inputs to match form conventions
+- Call users-api's bare /admin/users route, not /api/admin/users
+
+
+
 ## 0.17.0 - 2026-08-23
 
 ### Added
