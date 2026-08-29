@@ -1,4 +1,21 @@
 
+## 0.19.0 - 2026-08-29
+
+### Added
+- Add labels to deployment template metadata
+
+
+### Fixed
+- More labels
+- Remove env from base
+- Include selectors and templates
+- Include* settings
+- Update the service selectors too
+- And the pod monitor too
+- Drop redundant onload hack, reveal avatar fallback on image error
+
+
+
 ## 0.18.3 - 2026-08-28
 
 ### Fixed
