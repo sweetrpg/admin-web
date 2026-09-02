@@ -23,15 +23,35 @@
 						<td>
 							#if(row.configured):
 								#if(row.enabled):
-									<span class="tag tag-critical">#(meta.l10n.maintenance_status_enabled)</span>
+									<span class="tag tag-critical tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_enabled)
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.maintenance_status_enabled)</span>
+											<span class="tooltip-body">#(meta.l10n.maintenance_status_enabled_desc)</span>
+										</span>
+									</span>
 								#else:
-									<span class="tag tag-outline">#(meta.l10n.maintenance_status_off)</span>
+									<span class="tag tag-outline tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_off)
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.maintenance_status_off)</span>
+											<span class="tooltip-body">#(meta.l10n.maintenance_status_off_desc)</span>
+										</span>
+									</span>
 								#endif
 								#if(row.isStale):
-									<span class="tag tag-status-expired">#(meta.l10n.maintenance_status_past_end_date)</span>
+									<span class="tag tag-status-expired tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_past_end_date)
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.maintenance_status_past_end_date)</span>
+											<span class="tooltip-body">#(meta.l10n.maintenance_status_past_end_date_desc)</span>
+										</span>
+									</span>
 								#endif
 							#else:
-								<span class="tag tag-outline">#(meta.l10n.maintenance_status_not_configured)</span>
+								<span class="tag tag-outline tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_not_configured)
+									<span class="tooltip" role="tooltip">
+										<span class="tooltip-title">#(meta.l10n.maintenance_status_not_configured)</span>
+										<span class="tooltip-body">#(meta.l10n.maintenance_status_not_configured_desc)</span>
+									</span>
+								</span>
 							#endif
 						</td>
 						<td>#(row.label)</td>
