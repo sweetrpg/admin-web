@@ -1,4 +1,11 @@
 
+## 0.19.1 - 2026-09-02
+
+### Fixed
+- Rename User Settings to Profile in menu and tests
+
+
+
 ## 0.19.0 - 2026-08-29
 
 ### Added
@@ -33,7 +40,7 @@
 ## 0.18.1 - 2026-08-28
 
 ### Fixed
-- Point User Settings link at users-web's real profile route
+- Point Profile link at users-web's real profile route
 
 
 
