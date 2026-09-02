@@ -1,4 +1,11 @@
 
+## 0.20.0 - 2026-09-02
+
+### Added
+- Rich tooltip on maintenance-mode status badges (#79)
+
+
+
 ## 0.19.1 - 2026-09-02
 
 ### Fixed
