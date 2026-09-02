@@ -103,8 +103,11 @@ struct AppTests {
         #expect(res.status == .ok)
         let body = res.body.string
         #expect(body.contains("Catalog down"))
-        #expect(body.contains(#"class="tag tag-critical">Maintenance"#))
-        #expect(body.contains(#"class="tag tag-outline">Not configured"#))
+        #expect(body.contains(#"class="tag tag-critical tooltip-host" tabindex="0">Maintenance"#))
+        #expect(body.contains(#"class="tag tag-outline tooltip-host" tabindex="0">Not configured"#))
+        // Status badges carry a rich tooltip describing what each state means.
+        #expect(body.contains(#"<span class="tooltip-body">Maintenance mode is on for this scope"#))
+        #expect(body.contains(#"<span class="tooltip-body">No maintenance-mode record exists"#))
         #expect(body.contains(#"action="/maintenance-modes/mm1/toggle""#))
         // Human-friendly label in the visible cell, raw RFC3339 preserved in the tooltip -
         // regression coverage for the squished-columns/inconsistent-sizing fix and for the
