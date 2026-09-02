@@ -1,4 +1,11 @@
 
+## 0.19.1 - 2026-09-02
+
+### Fixed
+- Rename User Settings to Profile in menu and tests
+
+
+
 ## 0.19.0 - 2026-08-29
 
 ### Added
