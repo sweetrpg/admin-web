@@ -48,7 +48,7 @@
 										</span>
 									</button>
 								</form>
-								<form action="#(meta.basePath)/app-card-statuses/#(row.id)/delete" method="post" style="display:inline">
+								<form action="#(meta.basePath)/app-card-statuses/#(row.id)/delete" method="post" style="display:inline" onsubmit="return confirm('#(meta.l10n.app_card_confirm_delete)')">
 									<button type="submit" class="icon-btn icon-btn-danger tooltip-host" aria-label="#(meta.l10n.common_action_delete)">
 										<span class="icon-mask" style="mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/trash-alt.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/trash-alt.svg');"></span>
 										<span class="tooltip" role="tooltip">
