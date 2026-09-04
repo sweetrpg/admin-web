@@ -1,4 +1,11 @@
 
+## 0.21.2 - 2026-09-04
+
+### Fixed
+- Standardize app-card-status and maintenance-mode actions on icon-btn convention
+
+
+
 ## 0.21.1 - 2026-09-04
 
 ### Fixed
