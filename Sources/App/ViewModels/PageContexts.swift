@@ -34,6 +34,23 @@ struct MaintenanceModeFormContext: Content {
   let meta: PageMeta
 }
 
+struct AppCardStatusListContext: Content {
+  let rows: [LeafAppCardStatusRow]
+  let user: LeafUser?
+  let meta: PageMeta
+}
+
+struct AppCardStatusFormContext: Content {
+  let formAction: String
+  let displayName: String
+  let scopeType: String
+  let scopeValue: String
+  let isEdit: Bool
+  let status: LeafAppCardStatusForm
+  let user: LeafUser?
+  let meta: PageMeta
+}
+
 struct UsersListContext: Content {
   let users: [LeafUserSummary]
   let isEmpty: Bool

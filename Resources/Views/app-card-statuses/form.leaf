@@ -1,0 +1,31 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">#(meta.l10n.app_card_form_section_label)</span>
+			<h2>#(meta.l10n.app_card_form_title) #(displayName)</h2>
+		</section>
+
+		<form method="post" action="#(formAction)" class="form">
+			<input type="hidden" name="scope_type" value="#(scopeType)">
+			<input type="hidden" name="scope_value" value="#(scopeValue)">
+
+			<div class="form-group">
+				<label for="enabled">#(meta.l10n.app_card_field_enabled)</label>
+				<input type="checkbox" id="enabled" name="enabled" value="true" #if(status.enabled):checked#endif>
+			</div>
+
+			<div class="form-group">
+				<label for="label">#(meta.l10n.app_card_field_label)</label>
+				<input type="text" id="label" name="label" maxlength="24" placeholder="#(meta.l10n.app_card_placeholder_label)" value="#(status.label)" required>
+				<small>#(meta.l10n.app_card_hint_label)</small>
+			</div>
+
+			<div class="form-actions">
+				<button type="submit" class="btn btn-primary">
+					#if(isEdit): #(meta.l10n.common_save) #else: #(meta.l10n.app_card_action_create) #endif
+				</button>
+				<a href="#(meta.basePath)/app-card-statuses" class="btn btn-ghost">#(meta.l10n.common_cancel)</a>
+			</div>
+		</form>
+	#endexport
+#endextend

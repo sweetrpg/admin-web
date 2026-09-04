@@ -243,6 +243,68 @@ struct AdminAPIClient {
       try Self.throwOnFailure(response)
     }
   }
+
+  // MARK: - App card statuses
+
+  func listAllAppCardStatuses() async throws -> [AppCardStatus] {
+    try await withSpan("client-list-all-app-card-statuses") { _ in
+      let response = try await client.get(URI(string: baseURL + "/app-card-statuses"))
+      try Self.throwOnFailure(response)
+      return try response.content.decode([AppCardStatus].self)
+    }
+  }
+
+  func upsertAppCardStatus(_ input: AppCardStatusInput, accessToken: String) async throws
+    -> AppCardStatus
+  {
+    try await withSpan("client-upsert-app-card-status") { _ in
+      let response = try await post(
+        URI(string: baseURL + "/app-card-statuses"), accessToken: accessToken
+      ) { req in
+        try req.content.encode(input)
+      }
+      try Self.throwOnFailure(response)
+      return try response.content.decode(AppCardStatus.self)
+    }
+  }
+
+  func updateAppCardStatus(
+    id: String, _ input: AppCardStatusInput, accessToken: String
+  ) async throws -> AppCardStatus {
+    try await withSpan("client-update-app-card-status") { _ in
+      let response = try await put(
+        URI(string: baseURL + "/app-card-statuses/\(id)"), accessToken: accessToken
+      ) { req in
+        try req.content.encode(input)
+      }
+      try Self.throwOnFailure(response)
+      return try response.content.decode(AppCardStatus.self)
+    }
+  }
+
+  func setAppCardStatusEnabled(
+    _ status: AppCardStatus, enabled: Bool, accessToken: String
+  ) async throws -> AppCardStatus {
+    try await withSpan("client-set-app-card-status-enabled") { _ in
+      try await updateAppCardStatus(
+        id: status.id,
+        AppCardStatusInput(
+          scopeType: status.scopeType,
+          scopeValue: status.scopeValue,
+          enabled: enabled,
+          label: status.label
+        ),
+        accessToken: accessToken)
+    }
+  }
+
+  func deleteAppCardStatus(id: String, accessToken: String) async throws {
+    try await withSpan("client-delete-app-card-status") { _ in
+      let response = try await delete(
+        URI(string: baseURL + "/app-card-statuses/\(id)"), accessToken: accessToken)
+      try Self.throwOnFailure(response)
+    }
+  }
 }
 
 extension Request {
