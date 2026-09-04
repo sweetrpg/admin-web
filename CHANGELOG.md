@@ -1,4 +1,11 @@
 
+## 0.21.1 - 2026-09-04
+
+### Fixed
+- App-card-status page fixes - scope rename, sort, icon action, colors, form
+
+
+
 ## 0.21.0 - 2026-09-04
 
 ### Added
