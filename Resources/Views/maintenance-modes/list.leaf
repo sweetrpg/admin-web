@@ -58,15 +58,30 @@
 						<td title="#(row.startsAtRfc)">#(row.startsAtLabel)</td>
 						<td title="#(row.endsAtRfc)">#(row.endsAtLabel)</td>
 						<td class="table-actions">
-							<a class="btn btn-ghost" href="#(meta.basePath)/maintenance-modes/edit?scope_type=#(row.scopeType)&scope_value=#(row.scopeValue)">
-								#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.maintenance_action_configure) #endif
+							<a class="icon-btn" href="#(meta.basePath)/maintenance-modes/edit?scope_type=#(row.scopeType)&scope_value=#(row.scopeValue)"
+								title="#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.maintenance_action_configure) #endif">
+								<img src="#(meta.sharedURL)/static/img/icons/edit.svg" alt="#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.maintenance_action_configure) #endif">
 							</a>
 							#if(row.configured):
 								<form action="#(meta.basePath)/maintenance-modes/#(row.id)/toggle" method="post" style="display:inline">
-									<button type="submit" class="btn btn-ghost">#if(row.enabled): #(meta.l10n.maintenance_action_disable) #else: #(meta.l10n.maintenance_action_enable) #endif</button>
+									<button type="submit" class="icon-btn tooltip-host" aria-label="#if(row.enabled): #(meta.l10n.maintenance_action_disable) #else: #(meta.l10n.maintenance_action_enable) #endif">
+										#if(row.enabled):
+											<img src="#(meta.sharedURL)/static/img/icons/cancel.svg" alt="">
+										#else:
+											<img src="#(meta.sharedURL)/static/img/icons/accept.svg" alt="">
+										#endif
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#if(row.enabled): #(meta.l10n.maintenance_action_disable) #else: #(meta.l10n.maintenance_action_enable) #endif</span>
+										</span>
+									</button>
 								</form>
 								<form action="#(meta.basePath)/maintenance-modes/#(row.id)/delete" method="post" style="display:inline">
-									<button type="submit" class="btn btn-ghost">#(meta.l10n.common_action_delete)</button>
+									<button type="submit" class="icon-btn icon-btn-danger tooltip-host" aria-label="#(meta.l10n.common_action_delete)">
+										<span class="icon-mask" style="mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/trash-alt.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/trash-alt.svg');"></span>
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.common_action_delete)</span>
+										</span>
+									</button>
 								</form>
 							#endif
 						</td>
