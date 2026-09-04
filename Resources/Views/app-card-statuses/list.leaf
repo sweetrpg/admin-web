@@ -31,22 +31,30 @@
 						</td>
 						<td>#(row.label)</td>
 						<td class="table-actions">
-							<a class="btn btn-ghost btn-icon tooltip-host" tabindex="0"
-								href="#(meta.basePath)/app-card-statuses/edit?scope_value=#(row.scopeValue)"
-								aria-label="#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.app_card_action_configure) #endif">
-								<svg viewBox="0 0 24 24" aria-hidden="true">
-									<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.4 4a7.9 7.9 0 0 0-.15-1.5l2.1-1.6-2-3.5-2.5 1a8 8 0 0 0-2.6-1.5L14.8 2H9.2l-.45 2.9a8 8 0 0 0-2.6 1.5l-2.5-1-2 3.5 2.1 1.6A7.9 7.9 0 0 0 3.6 12c0 .5.05 1 .15 1.5l-2.1 1.6 2 3.5 2.5-1a8 8 0 0 0 2.6 1.5l.45 2.9h5.6l.45-2.9a8 8 0 0 0 2.6-1.5l2.5 1 2-3.5-2.1-1.6c.1-.5.15-1 .15-1.5z"/>
-								</svg>
-								<span class="tooltip" role="tooltip">
-									<span class="tooltip-title">#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.app_card_action_configure) #endif</span>
-								</span>
+							<a class="icon-btn" href="#(meta.basePath)/app-card-statuses/edit?scope_value=#(row.scopeValue)"
+								title="#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.app_card_action_configure) #endif">
+								<img src="#(meta.sharedURL)/static/img/icons/edit.svg" alt="#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.app_card_action_configure) #endif">
 							</a>
 							#if(row.configured):
 								<form action="#(meta.basePath)/app-card-statuses/#(row.id)/toggle" method="post" style="display:inline">
-									<button type="submit" class="btn btn-ghost">#if(row.enabled): #(meta.l10n.app_card_action_disable) #else: #(meta.l10n.app_card_action_enable) #endif</button>
+									<button type="submit" class="icon-btn tooltip-host" aria-label="#if(row.enabled): #(meta.l10n.app_card_action_disable) #else: #(meta.l10n.app_card_action_enable) #endif">
+										#if(row.enabled):
+											<img src="#(meta.sharedURL)/static/img/icons/cancel.svg" alt="">
+										#else:
+											<img src="#(meta.sharedURL)/static/img/icons/accept.svg" alt="">
+										#endif
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#if(row.enabled): #(meta.l10n.app_card_action_disable) #else: #(meta.l10n.app_card_action_enable) #endif</span>
+										</span>
+									</button>
 								</form>
 								<form action="#(meta.basePath)/app-card-statuses/#(row.id)/delete" method="post" style="display:inline">
-									<button type="submit" class="btn btn-ghost">#(meta.l10n.common_action_delete)</button>
+									<button type="submit" class="icon-btn icon-btn-danger tooltip-host" aria-label="#(meta.l10n.common_action_delete)">
+										<span class="icon-mask" style="mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/trash-alt.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/trash-alt.svg');"></span>
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.common_action_delete)</span>
+										</span>
+									</button>
 								</form>
 							#endif
 						</td>
