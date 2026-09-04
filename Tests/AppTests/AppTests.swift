@@ -326,4 +326,15 @@ struct AppTests {
     #expect(user.name == "Ada")
     #expect(user.expiry.timeIntervalSince1970 == 1_800_000_000)
   }
+
+  @Test("unauthenticated request to app-card-statuses list redirects to login")
+  func appCardStatusesUnauthenticatedRedirectsToLogin() async throws {
+    try await withApp(configure: configure) { app in
+      try await app.testing().test(.GET, "/app-card-statuses") { res in
+        #expect(res.status == .seeOther)
+        #expect(res.headers.first(name: .location) == "/auth/login?return_to=/app-card-statuses")
+      }
+    }
+  }
+
 }

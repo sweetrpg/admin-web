@@ -1,0 +1,51 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">#(meta.l10n.app_card_page_section_label)</span>
+			<h2>#(meta.l10n.app_card_page_title)</h2>
+		</section>
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>#(meta.l10n.app_card_column_scope)</th>
+					<th>#(meta.l10n.app_card_column_status)</th>
+					<th>#(meta.l10n.app_card_column_label)</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				#for(row in rows):
+					<tr>
+						<td>#(row.displayName)</td>
+						<td>
+							#if(row.configured):
+								#if(row.enabled):
+									<span class="tag tag-critical">#(meta.l10n.app_card_status_enabled)</span>
+								#else:
+									<span class="tag tag-outline">#(meta.l10n.app_card_status_off)</span>
+								#endif
+							#else:
+								<span class="tag tag-outline">#(meta.l10n.app_card_status_not_configured)</span>
+							#endif
+						</td>
+						<td>#(row.label)</td>
+						<td class="table-actions">
+							<a class="btn btn-ghost" href="#(meta.basePath)/app-card-statuses/edit?scope_value=#(row.scopeValue)">
+								#if(row.configured): #(meta.l10n.common_action_edit) #else: #(meta.l10n.app_card_action_configure) #endif
+							</a>
+							#if(row.configured):
+								<form action="#(meta.basePath)/app-card-statuses/#(row.id)/toggle" method="post" style="display:inline">
+									<button type="submit" class="btn btn-ghost">#if(row.enabled): #(meta.l10n.app_card_action_disable) #else: #(meta.l10n.app_card_action_enable) #endif</button>
+								</form>
+								<form action="#(meta.basePath)/app-card-statuses/#(row.id)/delete" method="post" style="display:inline">
+									<button type="submit" class="btn btn-ghost">#(meta.l10n.common_action_delete)</button>
+								</form>
+							#endif
+						</td>
+					</tr>
+				#endfor
+			</tbody>
+		</table>
+	#endexport
+#endextend
