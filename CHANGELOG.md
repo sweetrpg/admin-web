@@ -1,4 +1,11 @@
 
+## 0.21.3 - 2026-09-04
+
+### Fixed
+- Confirm before deleting app-card-status/maintenance-mode records
+
+
+
 ## 0.21.2 - 2026-09-04
 
 ### Fixed
