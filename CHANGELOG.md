@@ -1,4 +1,11 @@
 
+## 0.21.0 - 2026-09-04
+
+### Added
+- Add app-card-status admin page
+
+
+
 ## 0.20.0 - 2026-09-02
 
 ### Added
