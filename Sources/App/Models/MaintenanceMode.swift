@@ -69,7 +69,7 @@ struct MaintenanceModeInput: Content {
 /// page). Kept in sync by hand, same as `BannerScopeType`'s mirror of admin-api's Go enum.
 enum KnownServiceScope {
   static let all = [
-    "main", "catalog", "assets", "auth", "directory", "initiative", "shelf", "users", "shared",
+    "main", "catalog", "assets", "auth", "directory", "initiative", "game_room", "users", "shared",
   ]
 
   /// Maps a raw scope value (the internal identifier this app persists and sends to admin-api)
