@@ -31,6 +31,8 @@ struct AppCardStatusController: RouteCollection {
           record: byScope[scopeKey(type: "service", value: service)])
       }
 
+      rows.sort { $0.displayName < $1.displayName }
+
       return try await req.view.render(
         "app-card-statuses/list",
         AppCardStatusListContext(

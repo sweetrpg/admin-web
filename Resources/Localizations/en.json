@@ -6,7 +6,7 @@
   "maintenance.scope.auth": "Auth",
   "maintenance.scope.directory": "Directory",
   "maintenance.scope.initiative": "Initiative",
-  "maintenance.scope.shelf": "Shelf",
+  "maintenance.scope.game_room": "Game Room",
   "maintenance.scope.users": "Users",
   "maintenance.scope.shared": "Shared",
   "nav.title": "Administration",
@@ -112,7 +112,6 @@
   "app_card.action.disable": "Disable",
   "app_card.action.enable": "Enable",
   "app_card.form.section_label": "App Card Status",
-  "app_card.form.title": "App Card Status:",
   "app_card.field.enabled": "Enabled",
   "app_card.field.label": "Label",
   "app_card.placeholder.label": "Short display text",
@@ -123,7 +122,12 @@
   "app_card.scope.auth": "Auth",
   "app_card.scope.directory": "Directory",
   "app_card.scope.initiative": "Initiative",
-  "app_card.scope.shelf": "Shelf",
+  "app_card.scope.game_room": "Game Room",
   "app_card.scope.users": "Users",
-  "app_card.scope.shared": "Shared"
+  "app_card.scope.shared": "Shared",
+  "app_card.suggestion.coming_soon": "Coming soon",
+  "app_card.suggestion.beta": "Beta",
+  "app_card.suggestion.invite_only": "Invite only",
+  "app_card.suggestion.maintenance": "Maintenance",
+  "app_card.suggestion.new": "New"
 }
