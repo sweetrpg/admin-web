@@ -150,5 +150,9 @@
   "metrics.card.active_banners": "Active banners",
   "metrics.card.active_maintenance": "Active maintenance",
   "metrics.card.user_issues": "User issues",
-  "metrics.card.unavailable": "Unavailable"
+  "metrics.card.unavailable": "Unavailable",
+  "metrics.chart.users_label": "User counts by day, last 30 days",
+  "metrics.chart.total_series": "Total users",
+  "metrics.chart.new_series": "New users",
+  "metrics.chart.empty": "No user history available yet."
 }

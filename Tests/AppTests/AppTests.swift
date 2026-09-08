@@ -394,6 +394,18 @@ struct AppTests {
     #expect(withNew.newUsers == 9)
   }
 
+  @Test("users-api /admin/stats/history decodes into UserHistoryPoint list")
+  func userHistoryDecodes() throws {
+    let json =
+      #"[{"date":"2026-09-01","total_users":1,"new_users":0},"#
+      + #"{"date":"2026-09-02","total_users":3,"new_users":2}]"#
+    let points = try JSONDecoder().decode([UserHistoryPoint].self, from: Data(json.utf8))
+    #expect(points.count == 2)
+    #expect(points[1].date == "2026-09-02")
+    #expect(points[1].totalUsers == 3)
+    #expect(points[1].newUsers == 2)
+  }
+
   @Test("MetricCardVM groups thousands, carries a link, and degrades on failure")
   func metricCardFormatsAndDegrades() {
     #expect(MetricCardVM.failed.ok == false)
@@ -439,6 +451,7 @@ struct AppTests {
             totalUsers: .count(1204),
             activeUsers: .count(137),
             newUsers: .failed,
+            userHistoryJSON: #"[{"date":"2026-09-08","total_users":1204,"new_users":3}]"#,
             activeBanners: .count(2, href: "/banners"),
             activeMaintenance: .count(0, href: "/maintenance-modes"),
             userIssues: .failed,
@@ -450,6 +463,11 @@ struct AppTests {
         let body = res.body.string
         #expect(body.contains(#"class="metric-grid metric-grid-6""#))
         #expect(body.contains(#"class="metric-grid metric-grid-3""#))
+        // 30-day history chart: canvas, inline data (unescaped), Chart.js + init scripts.
+        #expect(body.contains(#"<canvas id="user-history-chart""#))
+        #expect(body.contains(#"id="user-history-data">[{"date":"2026-09-08""#))
+        #expect(body.contains("/static/js/vendor/chart.umd.min.js"))
+        #expect(body.contains("/static/js/admin/metrics-chart.js"))
         // Thousands grouping.
         #expect(body.contains("2,265"))
         #expect(body.contains("1,204"))
