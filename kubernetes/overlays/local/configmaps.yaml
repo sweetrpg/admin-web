@@ -16,6 +16,10 @@ data:
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
   USERS_API_URL: http://api-v1.sweetrpg-users.svc.cluster.local:8080
   AUTH_API_URL: http://api-v1.sweetrpg-auth.svc.cluster.local:8080
+  # Read by the metrics overview page for per-entity document counts - see the dev overlay's
+  # comment. Pinned to api-v1, internal calls bypass the versioned ingress.
+  CATALOG_API_URL: http://api-v1.sweetrpg-catalog.svc.cluster.local:8080
+  GAME_SYSTEMS_API_URL: http://api-v1.sweetrpg-game-systems.svc.cluster.local:8080
   # Traefik strips /admin before the request reaches this app (see middlewares.yaml), same as
   # the dev overlay - every link/redirect this app generates needs the prefix added back.
   INGRESS_BASE_PATH: /admin

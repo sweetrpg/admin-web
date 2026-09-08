@@ -6,7 +6,8 @@
 		</a>
 		<a href="#(meta.basePath)/">#(meta.l10n.nav_title)</a>
 	</div>
-	<a href="#(meta.basePath)/">#(meta.l10n.menu_banners)</a>
+	<a href="#(meta.basePath)/">#(meta.l10n.menu_dashboard)</a>
+	<a href="#(meta.basePath)/banners">#(meta.l10n.menu_banners)</a>
 	<a href="#(meta.basePath)/maintenance-modes">#(meta.l10n.menu_maintenance)</a>
 	<a href="#(meta.basePath)/app-card-statuses">#(meta.l10n.menu_app_card_statuses)</a>
 	<a href="#(meta.basePath)/users">#(meta.l10n.menu_users)</a>
