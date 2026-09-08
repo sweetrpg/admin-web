@@ -337,4 +337,113 @@ struct AppTests {
     }
   }
 
+  // MARK: - Metrics overview
+
+  @Test("banner list moved off the root path - unauthenticated /banners redirects to login")
+  func bannersListUnauthenticatedRedirectsToLogin() async throws {
+    try await withApp(configure: configure) { app in
+      try await app.testing().test(.GET, "/banners") { res in
+        #expect(res.status == .seeOther)
+        #expect(res.headers.first(name: .location) == "/auth/login?return_to=/banners")
+      }
+    }
+  }
+
+  @Test("catalog-api /stats sample decodes into CatalogStats")
+  func catalogStatsDecodes() throws {
+    // Captured from dev.sweetrpg.com/api/0/catalog/stats - the shape catalog-landing-summary
+    // owns. Only the fields the metrics page needs (count, most_recent) are asserted.
+    let json = """
+      {"volumes":{"count":2265,"last_updated":"2026-09-05T01:18:47Z",\
+      "most_recent":{"id":"6a9b6df513bda3b5715ac17d","name":"Cypher Character Rulebook"}},\
+      "publishers":{"count":175,"last_updated":"2026-09-05T01:16:28Z",\
+      "most_recent":{"id":"6a9b6d6c6f9a9834197c360e","name":"Legendary Adventures Studios"}},\
+      "studios":{"count":8,"last_updated":"2026-08-19T20:14:31Z",\
+      "most_recent":{"id":"6a860ea7effcb7c593c082e3","name":"Cubicle 7"}},\
+      "persons":{"count":176,"last_updated":"2026-08-26T15:03:44Z",\
+      "most_recent":{"id":"6a8f0050371bd438a1c1711b","name":"Katherine Gohring"}},\
+      "licenses":{"count":13,"last_updated":"2026-08-19T20:06:43Z",\
+      "most_recent":{"id":"64d3ab25bac7c940f86d10b7","name":"Open RPG Creative"}},\
+      "systems":{"count":14,"last_updated":"2026-08-21T01:30:00Z",\
+      "most_recent":{"id":"677f60421dd8e67ad13c4600","name":"Adventures in Middle Earth"}}}
+      """
+    let stats = try JSONDecoder().decode(CatalogStats.self, from: Data(json.utf8))
+    #expect(stats.volumes.count == 2265)
+    #expect(stats.volumes.mostRecent?.name == "Cypher Character Rulebook")
+    #expect(stats.licenses.count == 13)
+  }
+
+  @Test("game-systems-api /stats body decodes into GameSystemsStats")
+  func gameSystemsStatsDecodes() throws {
+    let stats = try JSONDecoder().decode(
+      GameSystemsStats.self, from: Data(#"{"game_systems":68}"#.utf8))
+    #expect(stats.gameSystems == 68)
+  }
+
+  @Test("users-api /admin/stats body decodes into UserStats")
+  func userStatsDecodes() throws {
+    let stats = try JSONDecoder().decode(
+      UserStats.self, from: Data(#"{"total_users":1204,"active_users":137}"#.utf8))
+    #expect(stats.totalUsers == 1204)
+    #expect(stats.activeUsers == 137)
+  }
+
+  @Test("a failed source yields a .failed view model; a zero-count type has no most-recent link")
+  func metricsViewModelsDegradeIndependently() {
+    #expect(UserMetricsVM.from(.failure(Abort(.badGateway))).ok == false)
+    #expect(GameSystemsMetricsVM.from(.failure(Abort(.badGateway))).ok == false)
+    #expect(CatalogMetricsVM.from(.failure(Abort(.badGateway)), detailURLBase: "/").ok == false)
+
+    let stats = CatalogStats(
+      volumes: CatalogTypeStats(
+        count: 3, mostRecent: .init(id: "v1", name: "Recent Volume")),
+      publishers: CatalogTypeStats(count: 0, mostRecent: nil),
+      studios: CatalogTypeStats(count: 0, mostRecent: nil),
+      persons: CatalogTypeStats(count: 0, mostRecent: nil),
+      licenses: CatalogTypeStats(count: 0, mostRecent: nil),
+      systems: CatalogTypeStats(count: 0, mostRecent: nil))
+    let vm = CatalogMetricsVM.from(.success(stats), detailURLBase: "https://dev.sweetrpg.com/")
+    #expect(vm.ok)
+    #expect(vm.volumes.hasMostRecent)
+    #expect(vm.volumes.mostRecentURL == "https://dev.sweetrpg.com/catalog/volumes/v1")
+    #expect(vm.licenses.count == 0)
+    #expect(vm.licenses.hasMostRecent == false)
+  }
+
+  @Test("metrics overview renders tiles, a degraded source's error state, and empty-type handling")
+  func metricsOverviewRenders() async throws {
+    try await withApp { app in
+      app.views.use(.leaf)
+      app.get("test-metrics") { req async throws -> View in
+        let catalog = CatalogStats(
+          volumes: CatalogTypeStats(count: 512, mostRecent: .init(id: "v9", name: "Newest Book")),
+          publishers: CatalogTypeStats(count: 42, mostRecent: .init(id: "p1", name: "A Press")),
+          studios: CatalogTypeStats(count: 8, mostRecent: .init(id: "s1", name: "A Studio")),
+          persons: CatalogTypeStats(count: 176, mostRecent: .init(id: "x1", name: "A Person")),
+          licenses: CatalogTypeStats(count: 0, mostRecent: nil),
+          systems: CatalogTypeStats(count: 14, mostRecent: .init(id: "y1", name: "A System")))
+        return try await req.view.render(
+          "metrics/overview",
+          MetricsPageContext(
+            users: .from(.success(UserStats(totalUsers: 1204, activeUsers: 137))),
+            catalog: .from(.success(catalog), detailURLBase: "/"),
+            gameSystems: .failed,
+            user: nil,
+            meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-metrics") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("1204"))
+        #expect(body.contains("137"))
+        #expect(body.contains(#"<a href="/catalog/volumes/v9">Newest Book</a>"#))
+        // Zero-count type: count shown, no most-recent link.
+        #expect(body.contains("<td>0</td>"))
+        #expect(!body.contains("catalog/licenses/"))
+        // Degraded source shows its localized error state, page still renders the rest.
+        #expect(body.contains("game-systems-api could not be reached"))
+      }
+    }
+  }
+
 }

@@ -1,0 +1,84 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">#(meta.l10n.metrics_page_section_label)</span>
+			<h2>#(meta.l10n.metrics_page_title)</h2>
+		</section>
+
+		<section class="metrics-section">
+			<h3>#(meta.l10n.metrics_users_heading)</h3>
+			#if(users.ok):
+				<table class="table">
+					<tbody>
+						<tr><th>#(meta.l10n.metrics_users_total)</th><td>#(users.totalUsers)</td></tr>
+						<tr><th>#(meta.l10n.metrics_users_active)</th><td>#(users.activeUsers)</td></tr>
+					</tbody>
+				</table>
+			#else:
+				<p class="empty-state">#(meta.l10n.metrics_users_error)</p>
+			#endif
+		</section>
+
+		<section class="metrics-section">
+			<h3>#(meta.l10n.metrics_catalog_heading)</h3>
+			#if(catalog.ok):
+				<table class="table">
+					<thead>
+						<tr>
+							<th>#(meta.l10n.metrics_catalog_column_type)</th>
+							<th>#(meta.l10n.metrics_catalog_column_count)</th>
+							<th>#(meta.l10n.metrics_catalog_column_most_recent)</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>#(meta.l10n.metrics_catalog_type_volumes)</td>
+							<td>#(catalog.volumes.count)</td>
+							<td>#if(catalog.volumes.hasMostRecent):<a href="#(catalog.volumes.mostRecentURL)">#(catalog.volumes.mostRecentName)</a>#else:&mdash;#endif</td>
+						</tr>
+						<tr>
+							<td>#(meta.l10n.metrics_catalog_type_publishers)</td>
+							<td>#(catalog.publishers.count)</td>
+							<td>#if(catalog.publishers.hasMostRecent):<a href="#(catalog.publishers.mostRecentURL)">#(catalog.publishers.mostRecentName)</a>#else:&mdash;#endif</td>
+						</tr>
+						<tr>
+							<td>#(meta.l10n.metrics_catalog_type_studios)</td>
+							<td>#(catalog.studios.count)</td>
+							<td>#if(catalog.studios.hasMostRecent):<a href="#(catalog.studios.mostRecentURL)">#(catalog.studios.mostRecentName)</a>#else:&mdash;#endif</td>
+						</tr>
+						<tr>
+							<td>#(meta.l10n.metrics_catalog_type_persons)</td>
+							<td>#(catalog.persons.count)</td>
+							<td>#if(catalog.persons.hasMostRecent):<a href="#(catalog.persons.mostRecentURL)">#(catalog.persons.mostRecentName)</a>#else:&mdash;#endif</td>
+						</tr>
+						<tr>
+							<td>#(meta.l10n.metrics_catalog_type_licenses)</td>
+							<td>#(catalog.licenses.count)</td>
+							<td>#if(catalog.licenses.hasMostRecent):<a href="#(catalog.licenses.mostRecentURL)">#(catalog.licenses.mostRecentName)</a>#else:&mdash;#endif</td>
+						</tr>
+						<tr>
+							<td>#(meta.l10n.metrics_catalog_type_systems)</td>
+							<td>#(catalog.systems.count)</td>
+							<td>#if(catalog.systems.hasMostRecent):<a href="#(catalog.systems.mostRecentURL)">#(catalog.systems.mostRecentName)</a>#else:&mdash;#endif</td>
+						</tr>
+					</tbody>
+				</table>
+			#else:
+				<p class="empty-state">#(meta.l10n.metrics_catalog_error)</p>
+			#endif
+		</section>
+
+		<section class="metrics-section">
+			<h3>#(meta.l10n.metrics_game_systems_heading)</h3>
+			#if(gameSystems.ok):
+				<table class="table">
+					<tbody>
+						<tr><th>#(meta.l10n.metrics_game_systems_count)</th><td>#(gameSystems.count)</td></tr>
+					</tbody>
+				</table>
+			#else:
+				<p class="empty-state">#(meta.l10n.metrics_game_systems_error)</p>
+			#endif
+		</section>
+	#endexport
+#endextend

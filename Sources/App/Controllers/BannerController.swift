@@ -7,7 +7,7 @@ import Vapor
 /// tasks.md 6.1-6.4.
 struct BannerController: RouteCollection {
   func boot(routes: RoutesBuilder) throws {
-    routes.get(use: list)
+    routes.get("banners", use: list)
     routes.get("banners", "new", use: newForm)
     routes.post("banners", use: create)
     routes.get("banners", ":bannerID", "edit", use: editForm)
@@ -83,7 +83,7 @@ struct BannerController: RouteCollection {
       req.logger.info(
         "create: \(actingUserSub) created banner \(created.id) (\(input.scopeType.rawValue) \(input.scopeValue))"
       )
-      return req.redirectLocal(to: "/")
+      return req.redirectLocal(to: "/banners")
     }
   }
 
@@ -95,7 +95,7 @@ struct BannerController: RouteCollection {
       let accessToken = try await requireAccessToken(req)
       _ = try await req.adminAPI.update(id: bannerID, input, accessToken: accessToken)
       req.logger.info("update: banner \(bannerID) updated")
-      return req.redirectLocal(to: "/")
+      return req.redirectLocal(to: "/banners")
     }
   }
 
@@ -111,7 +111,7 @@ struct BannerController: RouteCollection {
       let accessToken = try await requireAccessToken(req)
       _ = try await req.adminAPI.expireNow(banner, accessToken: accessToken)
       req.logger.info("expire: banner \(bannerID) expired immediately")
-      return req.redirectLocal(to: "/")
+      return req.redirectLocal(to: "/banners")
     }
   }
 
@@ -122,7 +122,7 @@ struct BannerController: RouteCollection {
       let accessToken = try await requireAccessToken(req)
       try await req.adminAPI.delete(id: bannerID, accessToken: accessToken)
       req.logger.info("delete: banner \(bannerID) deleted")
-      return req.redirectLocal(to: "/")
+      return req.redirectLocal(to: "/banners")
     }
   }
 

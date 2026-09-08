@@ -11,6 +11,19 @@ struct UserIdentity: Content {
   let subject: String?
 }
 
+/// `users-api`'s `GET /admin/stats` body - total user count and the count of users with a login
+/// inside a rolling 30-day window. Shape is owned by `sweetrpg/platform`'s
+/// `users-api-admin-stats` spec.
+struct UserStats: Content {
+  let totalUsers: Int
+  let activeUsers: Int
+
+  enum CodingKeys: String, CodingKey {
+    case totalUsers = "total_users"
+    case activeUsers = "active_users"
+  }
+}
+
 /// Thin client for `users-api`'s minimal `/api/admin/users` identity listing - the counterpart
 /// to `AdminAPIClient.swift`'s `/banners` client. Presents the acting user's own Auth0 access
 /// token as an `Authorization` bearer; `users-api` verifies it and checks the user's role
@@ -38,6 +51,22 @@ struct UsersAPIClient {
           response.status, reason: "users-api request failed with status \(response.status.code)")
       }
       return try response.content.decode([UserIdentity].self)
+    }
+  }
+
+  /// `GET /admin/stats` - user population counts for the metrics overview page. Forwards the
+  /// acting admin's own Auth0 access token as the bearer, same as `listUsers`; `users-api`
+  /// verifies it and checks the `admin` role itself.
+  func fetchAdminStats(accessToken: String) async throws -> UserStats {
+    try await withSpan("client-admin-stats") { _ in
+      let response = try await client.get(URI(string: baseURL + "/admin/stats")) { req in
+        req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
+      }
+      guard (200..<300).contains(response.status.code) else {
+        throw Abort(
+          response.status, reason: "users-api request failed with status \(response.status.code)")
+      }
+      return try response.content.decode(UserStats.self)
     }
   }
 }
