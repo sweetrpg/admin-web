@@ -1,4 +1,15 @@
 
+## 0.23.0 - 2026-09-08
+
+### Added
+- Rebuild the overview as a card dashboard
+
+
+### Changed
+- Move card CSS to shared-web admin/theme.css
+
+
+
 ## 0.22.0 - 2026-09-08
 
 ### Added

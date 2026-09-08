@@ -19,6 +19,17 @@ struct SubjectRolesSummary: Content {
   let deniedServices: [String]
 }
 
+/// `auth-api`'s `GET /api/admin/deny-entries/stats` body - the number of distinct subjects with
+/// at least one active deny entry, for the metrics page's "user issues" card. A dedicated count
+/// endpoint rather than listing every deny entry and counting client-side.
+struct RestrictedUsersStats: Content {
+  let restrictedUsers: Int
+
+  enum CodingKeys: String, CodingKey {
+    case restrictedUsers = "restricted_users"
+  }
+}
+
 /// Thin client for `auth-api`'s subject-keyed `/api/admin/roles`/`/api/admin/deny-entries`
 /// role/service-access management surface - the counterpart to `UsersAPIClient.swift`'s identity
 /// listing. `admin-web`'s role-management UI composes both: `users-api` for who a user is
@@ -52,6 +63,16 @@ struct AuthAPIClient {
         URI(string: baseURL + "/api/admin/roles?subjects=\(encoded.joined(separator: ","))"))
       try Self.throwOnFailure(response)
       return try response.content.decode([SubjectRolesSummary].self)
+    }
+  }
+
+  /// Count of distinct subjects with at least one active deny entry - the metrics page's "user
+  /// issues" card. Read-only, so no `X-Acting-User-Sub`.
+  func fetchRestrictedUserCount() async throws -> RestrictedUsersStats {
+    try await withSpan("client-restricted-user-count") { _ in
+      let response = try await get(URI(string: baseURL + "/api/admin/deny-entries/stats"))
+      try Self.throwOnFailure(response)
+      return try response.content.decode(RestrictedUsersStats.self)
     }
   }
 

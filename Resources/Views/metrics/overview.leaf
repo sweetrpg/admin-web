@@ -1,84 +1,105 @@
 #extend("base"):
 	#export("body"):
-		<section class="page-header">
-			<span class="section-label">#(meta.l10n.metrics_page_section_label)</span>
-			<h2>#(meta.l10n.metrics_page_title)</h2>
-		</section>
+		<div class="metrics-page">
+			<section class="page-header">
+				<span class="section-label">#(meta.l10n.metrics_page_section_label)</span>
+				<h2>#(meta.l10n.metrics_page_title)</h2>
+			</section>
 
-		<section class="metrics-section">
-			<h3>#(meta.l10n.metrics_users_heading)</h3>
-			#if(users.ok):
-				<table class="table">
-					<tbody>
-						<tr><th>#(meta.l10n.metrics_users_total)</th><td>#(users.totalUsers)</td></tr>
-						<tr><th>#(meta.l10n.metrics_users_active)</th><td>#(users.activeUsers)</td></tr>
-					</tbody>
-				</table>
-			#else:
-				<p class="empty-state">#(meta.l10n.metrics_users_error)</p>
-			#endif
-		</section>
+			<h3>#(meta.l10n.metrics_section_catalog)</h3>
+			<div class="metric-grid metric-grid-6">
+				<div class="metric-card #if(!catalog.volumes.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_volumes)</div>
+					#if(catalog.volumes.ok):
+						<div class="metric-card-count">#(catalog.volumes.countText)</div>
+						#if(catalog.volumes.hasLink):<div class="metric-card-sub"><a href="#(catalog.volumes.linkURL)">#(catalog.volumes.linkText)</a></div>#endif
+					#else:
+						<div class="metric-card-count">&mdash;</div>
+						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
+					#endif
+				</div>
+				<div class="metric-card #if(!catalog.publishers.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_publishers)</div>
+					#if(catalog.publishers.ok):
+						<div class="metric-card-count">#(catalog.publishers.countText)</div>
+						#if(catalog.publishers.hasLink):<div class="metric-card-sub"><a href="#(catalog.publishers.linkURL)">#(catalog.publishers.linkText)</a></div>#endif
+					#else:
+						<div class="metric-card-count">&mdash;</div>
+						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
+					#endif
+				</div>
+				<div class="metric-card #if(!catalog.studios.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_studios)</div>
+					#if(catalog.studios.ok):
+						<div class="metric-card-count">#(catalog.studios.countText)</div>
+						#if(catalog.studios.hasLink):<div class="metric-card-sub"><a href="#(catalog.studios.linkURL)">#(catalog.studios.linkText)</a></div>#endif
+					#else:
+						<div class="metric-card-count">&mdash;</div>
+						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
+					#endif
+				</div>
+				<div class="metric-card #if(!catalog.persons.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_persons)</div>
+					#if(catalog.persons.ok):
+						<div class="metric-card-count">#(catalog.persons.countText)</div>
+						#if(catalog.persons.hasLink):<div class="metric-card-sub"><a href="#(catalog.persons.linkURL)">#(catalog.persons.linkText)</a></div>#endif
+					#else:
+						<div class="metric-card-count">&mdash;</div>
+						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
+					#endif
+				</div>
+				<div class="metric-card #if(!catalog.licenses.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_licenses)</div>
+					#if(catalog.licenses.ok):
+						<div class="metric-card-count">#(catalog.licenses.countText)</div>
+						#if(catalog.licenses.hasLink):<div class="metric-card-sub"><a href="#(catalog.licenses.linkURL)">#(catalog.licenses.linkText)</a></div>#endif
+					#else:
+						<div class="metric-card-count">&mdash;</div>
+						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
+					#endif
+				</div>
+				<div class="metric-card #if(!gameSystems.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_game_systems)</div>
+					#if(gameSystems.ok):
+						<div class="metric-card-count">#(gameSystems.countText)</div>
+					#else:
+						<div class="metric-card-count">&mdash;</div>
+						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
+					#endif
+				</div>
+			</div>
 
-		<section class="metrics-section">
-			<h3>#(meta.l10n.metrics_catalog_heading)</h3>
-			#if(catalog.ok):
-				<table class="table">
-					<thead>
-						<tr>
-							<th>#(meta.l10n.metrics_catalog_column_type)</th>
-							<th>#(meta.l10n.metrics_catalog_column_count)</th>
-							<th>#(meta.l10n.metrics_catalog_column_most_recent)</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>#(meta.l10n.metrics_catalog_type_volumes)</td>
-							<td>#(catalog.volumes.count)</td>
-							<td>#if(catalog.volumes.hasMostRecent):<a href="#(catalog.volumes.mostRecentURL)">#(catalog.volumes.mostRecentName)</a>#else:&mdash;#endif</td>
-						</tr>
-						<tr>
-							<td>#(meta.l10n.metrics_catalog_type_publishers)</td>
-							<td>#(catalog.publishers.count)</td>
-							<td>#if(catalog.publishers.hasMostRecent):<a href="#(catalog.publishers.mostRecentURL)">#(catalog.publishers.mostRecentName)</a>#else:&mdash;#endif</td>
-						</tr>
-						<tr>
-							<td>#(meta.l10n.metrics_catalog_type_studios)</td>
-							<td>#(catalog.studios.count)</td>
-							<td>#if(catalog.studios.hasMostRecent):<a href="#(catalog.studios.mostRecentURL)">#(catalog.studios.mostRecentName)</a>#else:&mdash;#endif</td>
-						</tr>
-						<tr>
-							<td>#(meta.l10n.metrics_catalog_type_persons)</td>
-							<td>#(catalog.persons.count)</td>
-							<td>#if(catalog.persons.hasMostRecent):<a href="#(catalog.persons.mostRecentURL)">#(catalog.persons.mostRecentName)</a>#else:&mdash;#endif</td>
-						</tr>
-						<tr>
-							<td>#(meta.l10n.metrics_catalog_type_licenses)</td>
-							<td>#(catalog.licenses.count)</td>
-							<td>#if(catalog.licenses.hasMostRecent):<a href="#(catalog.licenses.mostRecentURL)">#(catalog.licenses.mostRecentName)</a>#else:&mdash;#endif</td>
-						</tr>
-						<tr>
-							<td>#(meta.l10n.metrics_catalog_type_systems)</td>
-							<td>#(catalog.systems.count)</td>
-							<td>#if(catalog.systems.hasMostRecent):<a href="#(catalog.systems.mostRecentURL)">#(catalog.systems.mostRecentName)</a>#else:&mdash;#endif</td>
-						</tr>
-					</tbody>
-				</table>
-			#else:
-				<p class="empty-state">#(meta.l10n.metrics_catalog_error)</p>
-			#endif
-		</section>
+			<h3>#(meta.l10n.metrics_section_users)</h3>
+			<div class="metric-grid metric-grid-3">
+				<div class="metric-card #if(!totalUsers.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_total_users)</div>
+					#if(totalUsers.ok):<div class="metric-card-count">#(totalUsers.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
+				</div>
+				<div class="metric-card #if(!activeUsers.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_active_users)</div>
+					#if(activeUsers.ok):<div class="metric-card-count">#(activeUsers.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
+				</div>
+				<div class="metric-card #if(!newUsers.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_new_users)</div>
+					#if(newUsers.ok):<div class="metric-card-count">#(newUsers.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
+				</div>
+			</div>
 
-		<section class="metrics-section">
-			<h3>#(meta.l10n.metrics_game_systems_heading)</h3>
-			#if(gameSystems.ok):
-				<table class="table">
-					<tbody>
-						<tr><th>#(meta.l10n.metrics_game_systems_count)</th><td>#(gameSystems.count)</td></tr>
-					</tbody>
-				</table>
-			#else:
-				<p class="empty-state">#(meta.l10n.metrics_game_systems_error)</p>
-			#endif
-		</section>
+			<h3>#(meta.l10n.metrics_section_operations)</h3>
+			<div class="metric-grid metric-grid-3">
+				<div class="metric-card #if(!activeBanners.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_active_banners)</div>
+					#if(activeBanners.ok):<div class="metric-card-count">#(activeBanners.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
+				</div>
+				<div class="metric-card #if(!activeMaintenance.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_active_maintenance)</div>
+					#if(activeMaintenance.ok):<div class="metric-card-count">#(activeMaintenance.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
+				</div>
+				<div class="metric-card #if(!userIssues.ok):metric-card-unavailable#endif">
+					<div class="metric-card-label">#(meta.l10n.metrics_card_user_issues)</div>
+					#if(userIssues.ok):<div class="metric-card-count">#(userIssues.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
+				</div>
+			</div>
+		</div>
 	#endexport
 #endextend
