@@ -23,6 +23,7 @@ struct MetricsController: RouteCollection {
       async let catalog = Self.fetchCatalog(req)
       async let gameSystems = Self.fetchGameSystems(req, href: "\(root)game-systems")
       async let userStats = Self.fetchUsers(req, accessToken: accessToken)
+      async let userHistoryJSON = Self.fetchUserHistoryJSON(req, accessToken: accessToken)
       async let banners = Self.card(href: "\(base)/banners") {
         try await req.adminAPI.activeBannerCount()
       }
@@ -42,6 +43,7 @@ struct MetricsController: RouteCollection {
           totalUsers: users.total,
           activeUsers: users.active,
           newUsers: users.new,
+          userHistoryJSON: await userHistoryJSON,
           activeBanners: await banners,
           activeMaintenance: await maintenance,
           userIssues: await issues,
@@ -69,6 +71,22 @@ struct MetricsController: RouteCollection {
     } catch {
       req.logger.error("metrics: catalog-api stats failed: \(error)")
       return .failed
+    }
+  }
+
+  /// The 30-day history as a JSON string for the chart's inline data block, or `"[]"` if the
+  /// endpoint was unavailable (older `users-api`, timeout, missing session). `<` is escaped so
+  /// the payload is safe to drop straight into a `<script>` element.
+  private static func fetchUserHistoryJSON(_ req: Request, accessToken: String?) async -> String {
+    guard let accessToken else { return "[]" }
+    do {
+      let points = try await req.usersAPI.fetchUserHistory(accessToken: accessToken)
+      let data = try JSONEncoder().encode(points)
+      return (String(data: data, encoding: .utf8) ?? "[]").replacingOccurrences(
+        of: "<", with: "\\u003c")
+    } catch {
+      req.logger.error("metrics: users-api history failed: \(error)")
+      return "[]"
     }
   }
 

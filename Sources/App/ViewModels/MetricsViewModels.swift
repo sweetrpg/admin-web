@@ -63,10 +63,13 @@ struct MetricsPageContext: Content {
   // Catalog & game systems row (6 cards)
   let catalog: CatalogCardsVM
   let gameSystems: MetricCardVM
-  // Users row (3 cards)
+  // Users row (3 cards) + the 30-day history chart
   let totalUsers: MetricCardVM
   let activeUsers: MetricCardVM
   let newUsers: MetricCardVM
+  /// `[UserHistoryPoint]` as a JSON string for the chart's inline data block. "[]" when the
+  /// history endpoint was unavailable - the chart script then renders an empty-state note.
+  let userHistoryJSON: String
   // Operations row (3 cards)
   let activeBanners: MetricCardVM
   let activeMaintenance: MetricCardVM
