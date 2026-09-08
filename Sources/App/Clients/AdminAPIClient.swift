@@ -44,6 +44,23 @@ struct AdminAPIClient {
     }
   }
 
+  /// Number of banners currently live (not expired, not still scheduled) - the metrics page's
+  /// "active banners" card. Counted from the full list this app already fetches for the banner
+  /// admin view; the platform-scoped banner set is small, so no dedicated count endpoint.
+  func activeBannerCount() async throws -> Int {
+    try await withSpan("client-active-banner-count") { _ in
+      try await listAll().filter { $0.status() == .active }.count
+    }
+  }
+
+  /// Number of maintenance-mode records with `enabled` set - the metrics page's "active
+  /// maintenance" card. Same rationale as `activeBannerCount`.
+  func activeMaintenanceCount() async throws -> Int {
+    try await withSpan("client-active-maintenance-count") { _ in
+      try await listAllMaintenanceModes().filter { $0.enabled }.count
+    }
+  }
+
   /// admin-api's `POST /banners` requires `created_by` in the body (`createBannerRequest`,
   /// `binding:"required"`) - `BannerInput` deliberately has no such field (it's also the
   /// `PUT` payload shape, which admin-api's `updateBannerRequest` does not accept `created_by`

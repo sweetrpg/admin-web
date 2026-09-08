@@ -11,16 +11,19 @@ struct UserIdentity: Content {
   let subject: String?
 }
 
-/// `users-api`'s `GET /admin/stats` body - total user count and the count of users with a login
-/// inside a rolling 30-day window. Shape is owned by `sweetrpg/platform`'s
-/// `users-api-admin-stats` spec.
+/// `users-api`'s `GET /admin/stats` body - total user count, the count active within a rolling
+/// 30-day login window, and (once `users-api` ships it) the count of signups in the last 7
+/// days. `newUsers` is optional so this decodes against a `users-api` release that predates the
+/// field; the metrics page renders that card as unavailable until it appears.
 struct UserStats: Content {
   let totalUsers: Int
   let activeUsers: Int
+  let newUsers: Int?
 
   enum CodingKeys: String, CodingKey {
     case totalUsers = "total_users"
     case activeUsers = "active_users"
+    case newUsers = "new_users"
   }
 }
 
