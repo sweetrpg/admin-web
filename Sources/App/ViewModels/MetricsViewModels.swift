@@ -1,124 +1,85 @@
+import Foundation
 import Vapor
 
-/// One catalog entity type's tile: its record count and, when non-empty, a link to the single
-/// most recently added record. `hasMostRecent` is false for a zero-count type, and the template
-/// renders no "most recent" link in that case.
-struct CatalogTileVM: Content {
-  let count: Int
-  let hasMostRecent: Bool
-  let mostRecentName: String
-  let mostRecentURL: String
+/// One metric card on the overview dashboard: a labelled count with an optional sub-line link
+/// (e.g. a catalog type's most recently added record). `ok` is false when the card's source
+/// could not be reached; the template renders a dash and an "unavailable" note instead of the
+/// count.
+struct MetricCardVM: Content {
+  let ok: Bool
+  /// Locale-grouped count string ("2,265"), or "0". Not shown when `ok` is false.
+  let countText: String
+  let hasLink: Bool
+  let linkURL: String
+  let linkText: String
 
-  static let zero = CatalogTileVM(
-    count: 0, hasMostRecent: false, mostRecentName: "", mostRecentURL: "")
+  static let failed = MetricCardVM(
+    ok: false, countText: "0", hasLink: false, linkURL: "", linkText: "")
 
-  /// - Parameter detailURLBase: `Request.rootURL` (the platform root, trailing slash), so the
-  ///   most-recent link points at catalog-web's detail page for that record.
-  init(_ stats: CatalogTypeStats, typePath: String, detailURLBase: String) {
-    self.count = stats.count
-    if let recent = stats.mostRecent, stats.count > 0 {
-      self.hasMostRecent = true
-      self.mostRecentName = recent.name
-      self.mostRecentURL = "\(detailURLBase)catalog/\(typePath)/\(recent.id)"
-    } else {
-      self.hasMostRecent = false
-      self.mostRecentName = ""
-      self.mostRecentURL = ""
-    }
+  static func count(_ n: Int) -> MetricCardVM {
+    MetricCardVM(ok: true, countText: Self.format(n), hasLink: false, linkURL: "", linkText: "")
   }
 
-  private init(count: Int, hasMostRecent: Bool, mostRecentName: String, mostRecentURL: String) {
-    self.count = count
-    self.hasMostRecent = hasMostRecent
-    self.mostRecentName = mostRecentName
-    self.mostRecentURL = mostRecentURL
+  static func count(_ n: Int, linkText: String, linkURL: String) -> MetricCardVM {
+    let hasLink = !linkText.isEmpty && n > 0
+    return MetricCardVM(
+      ok: true, countText: Self.format(n), hasLink: hasLink,
+      linkURL: hasLink ? linkURL : "", linkText: hasLink ? linkText : "")
+  }
+
+  private static let formatter: NumberFormatter = {
+    let f = NumberFormatter()
+    f.numberStyle = .decimal
+    f.locale = Locale(identifier: "en_US")
+    return f
+  }()
+
+  private static func format(_ n: Int) -> String {
+    n >= 1000 ? (formatter.string(from: NSNumber(value: n)) ?? String(n)) : String(n)
   }
 }
 
-/// User-population tile. `ok` is false when `users-api`'s `GET /admin/stats` could not be
-/// reached; the template shows an error state and the counts are ignored.
-struct UserMetricsVM: Content {
-  let ok: Bool
-  let totalUsers: Int
-  let activeUsers: Int
+/// The five catalog-entity cards, from `catalog-api`'s `GET /stats`. All five degrade together
+/// (one source); the game-system card is separate.
+struct CatalogCardsVM: Content {
+  let volumes: MetricCardVM
+  let publishers: MetricCardVM
+  let studios: MetricCardVM
+  let persons: MetricCardVM
+  let licenses: MetricCardVM
 
-  static let failed = UserMetricsVM(ok: false, totalUsers: 0, activeUsers: 0)
+  static let failed = CatalogCardsVM(
+    volumes: .failed, publishers: .failed, studios: .failed, persons: .failed, licenses: .failed)
 
-  static func from(_ result: Result<UserStats, Error>) -> UserMetricsVM {
-    switch result {
-    case .success(let s):
-      return UserMetricsVM(ok: true, totalUsers: s.totalUsers, activeUsers: s.activeUsers)
-    case .failure:
-      return .failed
-    }
-  }
-}
-
-/// Catalog document counts, one tile per entity type. `ok` is false when `catalog-api`'s
-/// `GET /stats` could not be reached or decoded; the template shows a single error state in
-/// place of the six tiles.
-struct CatalogMetricsVM: Content {
-  let ok: Bool
-  let volumes: CatalogTileVM
-  let publishers: CatalogTileVM
-  let studios: CatalogTileVM
-  let persons: CatalogTileVM
-  let licenses: CatalogTileVM
-  let systems: CatalogTileVM
-
-  static let failed = CatalogMetricsVM(
-    ok: false, volumes: .zero, publishers: .zero, studios: .zero, persons: .zero,
-    licenses: .zero, systems: .zero)
-
-  static func from(_ result: Result<CatalogStats, Error>, detailURLBase: String) -> CatalogMetricsVM
-  {
+  static func from(_ result: Result<CatalogStats, Error>, detailURLBase: String) -> CatalogCardsVM {
     guard case .success(let s) = result else { return .failed }
-    return CatalogMetricsVM(
-      ok: true,
-      volumes: CatalogTileVM(s.volumes, typePath: "volumes", detailURLBase: detailURLBase),
-      publishers: CatalogTileVM(s.publishers, typePath: "publishers", detailURLBase: detailURLBase),
-      studios: CatalogTileVM(s.studios, typePath: "studios", detailURLBase: detailURLBase),
-      persons: CatalogTileVM(s.persons, typePath: "persons", detailURLBase: detailURLBase),
-      licenses: CatalogTileVM(s.licenses, typePath: "licenses", detailURLBase: detailURLBase),
-      systems: CatalogTileVM(s.systems, typePath: "systems", detailURLBase: detailURLBase))
-  }
-
-  private init(
-    ok: Bool, volumes: CatalogTileVM, publishers: CatalogTileVM, studios: CatalogTileVM,
-    persons: CatalogTileVM, licenses: CatalogTileVM, systems: CatalogTileVM
-  ) {
-    self.ok = ok
-    self.volumes = volumes
-    self.publishers = publishers
-    self.studios = studios
-    self.persons = persons
-    self.licenses = licenses
-    self.systems = systems
-  }
-}
-
-/// Game-system document count. `ok` is false when `game-systems-api`'s `GET /stats` could not be
-/// reached.
-struct GameSystemsMetricsVM: Content {
-  let ok: Bool
-  let count: Int
-
-  static let failed = GameSystemsMetricsVM(ok: false, count: 0)
-
-  static func from(_ result: Result<GameSystemsStats, Error>) -> GameSystemsMetricsVM {
-    switch result {
-    case .success(let s):
-      return GameSystemsMetricsVM(ok: true, count: s.gameSystems)
-    case .failure:
-      return .failed
+    func card(_ t: CatalogTypeStats, _ path: String) -> MetricCardVM {
+      .count(
+        t.count, linkText: t.mostRecent?.name ?? "",
+        linkURL: t.mostRecent.map { "\(detailURLBase)catalog/\(path)/\($0.id)" } ?? "")
     }
+    return CatalogCardsVM(
+      volumes: card(s.volumes, "volumes"),
+      publishers: card(s.publishers, "publishers"),
+      studios: card(s.studios, "studios"),
+      persons: card(s.persons, "persons"),
+      licenses: card(s.licenses, "licenses"))
   }
 }
 
 struct MetricsPageContext: Content {
-  let users: UserMetricsVM
-  let catalog: CatalogMetricsVM
-  let gameSystems: GameSystemsMetricsVM
+  // Catalog & game systems row (6 cards)
+  let catalog: CatalogCardsVM
+  let gameSystems: MetricCardVM
+  // Users row (3 cards)
+  let totalUsers: MetricCardVM
+  let activeUsers: MetricCardVM
+  let newUsers: MetricCardVM
+  // Operations row (3 cards)
+  let activeBanners: MetricCardVM
+  let activeMaintenance: MetricCardVM
+  let userIssues: MetricCardVM
+
   let user: LeafUser?
   let meta: PageMeta
 }
