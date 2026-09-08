@@ -27,6 +27,21 @@ struct UserStats: Content {
   }
 }
 
+/// One day in `users-api`'s `GET /admin/stats/history` response - a cumulative user total as of
+/// end of that day, plus that day's signups. No "active" series: `last_login_at` holds only the
+/// latest login, so historical daily-active can't be reconstructed.
+struct UserHistoryPoint: Content {
+  let date: String
+  let totalUsers: Int
+  let newUsers: Int
+
+  enum CodingKeys: String, CodingKey {
+    case date
+    case totalUsers = "total_users"
+    case newUsers = "new_users"
+  }
+}
+
 /// Thin client for `users-api`'s minimal `/api/admin/users` identity listing - the counterpart
 /// to `AdminAPIClient.swift`'s `/banners` client. Presents the acting user's own Auth0 access
 /// token as an `Authorization` bearer; `users-api` verifies it and checks the user's role
@@ -54,6 +69,23 @@ struct UsersAPIClient {
           response.status, reason: "users-api request failed with status \(response.status.code)")
       }
       return try response.content.decode([UserIdentity].self)
+    }
+  }
+
+  /// `GET /admin/stats/history?days=` - per-day user totals for the overview chart. Same
+  /// forwarded-bearer auth as `fetchAdminStats`. Returns oldest-first.
+  func fetchUserHistory(accessToken: String, days: Int = 30) async throws -> [UserHistoryPoint] {
+    try await withSpan("client-admin-stats-history") { _ in
+      let response = try await client.get(
+        URI(string: baseURL + "/admin/stats/history?days=\(days)")
+      ) { req in
+        req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
+      }
+      guard (200..<300).contains(response.status.code) else {
+        throw Abort(
+          response.status, reason: "users-api request failed with status \(response.status.code)")
+      }
+      return try response.content.decode([UserHistoryPoint].self)
     }
   }
 

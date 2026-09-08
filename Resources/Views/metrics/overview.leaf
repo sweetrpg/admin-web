@@ -9,63 +9,34 @@
 			<h3>#(meta.l10n.metrics_section_catalog)</h3>
 			<div class="metric-grid metric-grid-6">
 				<div class="metric-card #if(!catalog.volumes.ok):metric-card-unavailable#endif">
+					#if(catalog.volumes.href):<a class="metric-card-link" href="#(catalog.volumes.href)" aria-label="#(meta.l10n.metrics_card_volumes)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_volumes)</div>
-					#if(catalog.volumes.ok):
-						<div class="metric-card-count">#(catalog.volumes.countText)</div>
-						#if(catalog.volumes.hasLink):<div class="metric-card-sub"><a href="#(catalog.volumes.linkURL)">#(catalog.volumes.linkText)</a></div>#endif
-					#else:
-						<div class="metric-card-count">&mdash;</div>
-						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
-					#endif
+					#if(catalog.volumes.ok):<div class="metric-card-count">#(catalog.volumes.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!catalog.publishers.ok):metric-card-unavailable#endif">
+					#if(catalog.publishers.href):<a class="metric-card-link" href="#(catalog.publishers.href)" aria-label="#(meta.l10n.metrics_card_publishers)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_publishers)</div>
-					#if(catalog.publishers.ok):
-						<div class="metric-card-count">#(catalog.publishers.countText)</div>
-						#if(catalog.publishers.hasLink):<div class="metric-card-sub"><a href="#(catalog.publishers.linkURL)">#(catalog.publishers.linkText)</a></div>#endif
-					#else:
-						<div class="metric-card-count">&mdash;</div>
-						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
-					#endif
+					#if(catalog.publishers.ok):<div class="metric-card-count">#(catalog.publishers.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!catalog.studios.ok):metric-card-unavailable#endif">
+					#if(catalog.studios.href):<a class="metric-card-link" href="#(catalog.studios.href)" aria-label="#(meta.l10n.metrics_card_studios)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_studios)</div>
-					#if(catalog.studios.ok):
-						<div class="metric-card-count">#(catalog.studios.countText)</div>
-						#if(catalog.studios.hasLink):<div class="metric-card-sub"><a href="#(catalog.studios.linkURL)">#(catalog.studios.linkText)</a></div>#endif
-					#else:
-						<div class="metric-card-count">&mdash;</div>
-						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
-					#endif
+					#if(catalog.studios.ok):<div class="metric-card-count">#(catalog.studios.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!catalog.persons.ok):metric-card-unavailable#endif">
+					#if(catalog.persons.href):<a class="metric-card-link" href="#(catalog.persons.href)" aria-label="#(meta.l10n.metrics_card_persons)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_persons)</div>
-					#if(catalog.persons.ok):
-						<div class="metric-card-count">#(catalog.persons.countText)</div>
-						#if(catalog.persons.hasLink):<div class="metric-card-sub"><a href="#(catalog.persons.linkURL)">#(catalog.persons.linkText)</a></div>#endif
-					#else:
-						<div class="metric-card-count">&mdash;</div>
-						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
-					#endif
+					#if(catalog.persons.ok):<div class="metric-card-count">#(catalog.persons.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!catalog.licenses.ok):metric-card-unavailable#endif">
+					#if(catalog.licenses.href):<a class="metric-card-link" href="#(catalog.licenses.href)" aria-label="#(meta.l10n.metrics_card_licenses)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_licenses)</div>
-					#if(catalog.licenses.ok):
-						<div class="metric-card-count">#(catalog.licenses.countText)</div>
-						#if(catalog.licenses.hasLink):<div class="metric-card-sub"><a href="#(catalog.licenses.linkURL)">#(catalog.licenses.linkText)</a></div>#endif
-					#else:
-						<div class="metric-card-count">&mdash;</div>
-						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
-					#endif
+					#if(catalog.licenses.ok):<div class="metric-card-count">#(catalog.licenses.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!gameSystems.ok):metric-card-unavailable#endif">
+					#if(gameSystems.href):<a class="metric-card-link" href="#(gameSystems.href)" aria-label="#(meta.l10n.metrics_card_game_systems)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_game_systems)</div>
-					#if(gameSystems.ok):
-						<div class="metric-card-count">#(gameSystems.countText)</div>
-					#else:
-						<div class="metric-card-count">&mdash;</div>
-						<div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>
-					#endif
+					#if(gameSystems.ok):<div class="metric-card-count">#(gameSystems.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 			</div>
 
@@ -85,17 +56,30 @@
 				</div>
 			</div>
 
+			<div class="metrics-chart" data-user-history="user-history-data"
+				data-label-total="#(meta.l10n.metrics_chart_total_series)"
+				data-label-new="#(meta.l10n.metrics_chart_new_series)">
+				<canvas id="user-history-chart" role="img" aria-label="#(meta.l10n.metrics_chart_users_label)"></canvas>
+				<p class="metrics-chart-empty" hidden>#(meta.l10n.metrics_chart_empty)</p>
+			</div>
+			<script type="application/json" id="user-history-data">#unsafeHTML(userHistoryJSON)</script>
+			<script src="#(meta.sharedURL)/static/js/vendor/chart.umd.min.js"></script>
+			<script src="#(meta.sharedURL)/static/js/admin/metrics-chart.js"></script>
+
 			<h3>#(meta.l10n.metrics_section_operations)</h3>
 			<div class="metric-grid metric-grid-3">
 				<div class="metric-card #if(!activeBanners.ok):metric-card-unavailable#endif">
+					#if(activeBanners.href):<a class="metric-card-link" href="#(activeBanners.href)" aria-label="#(meta.l10n.metrics_card_active_banners)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_active_banners)</div>
 					#if(activeBanners.ok):<div class="metric-card-count">#(activeBanners.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!activeMaintenance.ok):metric-card-unavailable#endif">
+					#if(activeMaintenance.href):<a class="metric-card-link" href="#(activeMaintenance.href)" aria-label="#(meta.l10n.metrics_card_active_maintenance)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_active_maintenance)</div>
 					#if(activeMaintenance.ok):<div class="metric-card-count">#(activeMaintenance.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
 				<div class="metric-card #if(!userIssues.ok):metric-card-unavailable#endif">
+					#if(userIssues.href):<a class="metric-card-link" href="#(userIssues.href)" aria-label="#(meta.l10n.metrics_card_user_issues)"></a>#endif
 					<div class="metric-card-label">#(meta.l10n.metrics_card_user_issues)</div>
 					#if(userIssues.ok):<div class="metric-card-count">#(userIssues.countText)</div>#else:<div class="metric-card-count">&mdash;</div><div class="metric-card-note">#(meta.l10n.metrics_card_unavailable)</div>#endif
 				</div>
