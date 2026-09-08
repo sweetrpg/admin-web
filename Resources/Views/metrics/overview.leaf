@@ -1,31 +1,5 @@
 #extend("base"):
 	#export("body"):
-		<style>
-		.metrics-page .metric-grid { display: grid; gap: 16px; margin: 12px 0 30px; }
-		.metrics-page .metric-grid-6 { grid-template-columns: repeat(6, 1fr); }
-		.metrics-page .metric-grid-3 { grid-template-columns: repeat(3, 1fr); }
-		@media (max-width: 1000px) { .metrics-page .metric-grid-6 { grid-template-columns: repeat(3, 1fr); } }
-		@media (max-width: 560px) {
-			.metrics-page .metric-grid-6, .metrics-page .metric-grid-3 { grid-template-columns: repeat(2, 1fr); }
-		}
-		.metrics-page .metric-card {
-			background: var(--color-surface);
-			border: 1px solid var(--color-neutral-300);
-			border-radius: 8px;
-			padding: 14px 16px 16px;
-			min-width: 0;
-		}
-		.metrics-page .metric-card-label {
-			font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-			color: var(--color-neutral-600);
-		}
-		.metrics-page .metric-card-count { font-size: 28px; font-weight: 700; margin-top: 4px; line-height: 1.1; }
-		.metrics-page .metric-card-sub { margin-top: 6px; font-size: 13px; overflow-wrap: anywhere; }
-		.metrics-page .metric-card-sub a { color: var(--color-accent); }
-		.metrics-page .metric-card-note { margin-top: 6px; font-size: 12px; color: var(--color-neutral-600); }
-		.metrics-page .metric-card-unavailable .metric-card-count { color: var(--color-neutral-600); font-weight: 500; }
-		</style>
-
 		<div class="metrics-page">
 			<section class="page-header">
 				<span class="section-label">#(meta.l10n.metrics_page_section_label)</span>
