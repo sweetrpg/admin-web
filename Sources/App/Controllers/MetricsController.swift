@@ -17,13 +17,19 @@ struct MetricsController: RouteCollection {
   func overview(req: Request) async throws -> View {
     try await withSpan("metrics-overview") { _ in
       let accessToken = (await req.currentUser)?.accessToken
+      let root = req.rootURL
+      let base = req.basePath
 
       async let catalog = Self.fetchCatalog(req)
-      async let gameSystems = Self.fetchGameSystems(req)
+      async let gameSystems = Self.fetchGameSystems(req, href: "\(root)game-systems")
       async let userStats = Self.fetchUsers(req, accessToken: accessToken)
-      async let banners = Self.card { try await req.adminAPI.activeBannerCount() }
-      async let maintenance = Self.card { try await req.adminAPI.activeMaintenanceCount() }
-      async let issues = Self.card {
+      async let banners = Self.card(href: "\(base)/banners") {
+        try await req.adminAPI.activeBannerCount()
+      }
+      async let maintenance = Self.card(href: "\(base)/maintenance-modes") {
+        try await req.adminAPI.activeMaintenanceCount()
+      }
+      async let issues = Self.card(href: "\(base)/users") {
         try await req.authAPI.fetchRestrictedUserCount().restrictedUsers
       }
 
@@ -45,11 +51,13 @@ struct MetricsController: RouteCollection {
     }
   }
 
-  /// Runs `body` and turns its result into an `ok` card, or a `.failed` card on any error. The
-  /// per-card degradation path shared by the single-count cards.
-  private static func card(_ body: @escaping () async throws -> Int) async -> MetricCardVM {
+  /// Runs `body` and turns its result into an `ok` card linking to `href`, or a `.failed` card
+  /// on any error. The per-card degradation path shared by the single-count cards.
+  private static func card(
+    href: String, _ body: @escaping () async throws -> Int
+  ) async -> MetricCardVM {
     do {
-      return .count(try await body())
+      return .count(try await body(), href: href)
     } catch {
       return .failed
     }
@@ -57,16 +65,16 @@ struct MetricsController: RouteCollection {
 
   private static func fetchCatalog(_ req: Request) async -> CatalogCardsVM {
     do {
-      return .from(.success(try await req.catalogAPI.fetchStats()), detailURLBase: req.rootURL)
+      return .from(.success(try await req.catalogAPI.fetchStats()), catalogURLBase: req.rootURL)
     } catch {
       req.logger.error("metrics: catalog-api stats failed: \(error)")
       return .failed
     }
   }
 
-  private static func fetchGameSystems(_ req: Request) async -> MetricCardVM {
+  private static func fetchGameSystems(_ req: Request, href: String) async -> MetricCardVM {
     do {
-      return .count(try await req.gameSystemsAPI.fetchStats().gameSystems)
+      return .count(try await req.gameSystemsAPI.fetchStats().gameSystems, href: href)
     } catch {
       req.logger.error("metrics: game-systems-api stats failed: \(error)")
       return .failed
@@ -92,7 +100,7 @@ struct MetricsController: RouteCollection {
         active: .count(s.activeUsers),
         // `new_users` is absent until users-api ships it - render that card as unavailable
         // rather than a misleading zero.
-        new: s.newUsers.map(MetricCardVM.count) ?? .failed)
+        new: s.newUsers.map { MetricCardVM.count($0) } ?? .failed)
     } catch {
       req.logger.error("metrics: users-api stats failed: \(error)")
       return .allFailed
