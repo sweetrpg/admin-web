@@ -1,4 +1,12 @@
 
+## 0.24.0 - 2026-09-08
+
+### Added
+- Drop recent-entry line, link cards to their pages
+- Add the 30-day user-history bar chart
+
+
+
 ## 0.23.0 - 2026-09-08
 
 ### Added
