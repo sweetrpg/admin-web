@@ -394,57 +394,53 @@ struct AppTests {
     #expect(withNew.newUsers == 9)
   }
 
-  @Test("MetricCardVM groups thousands, drops the link on a zero count, and degrades on failure")
+  @Test("MetricCardVM groups thousands, carries a link, and degrades on failure")
   func metricCardFormatsAndDegrades() {
     #expect(MetricCardVM.failed.ok == false)
+    #expect(MetricCardVM.failed.href == "")
     #expect(MetricCardVM.count(1234).countText == "1,234")
     #expect(MetricCardVM.count(42).countText == "42")
     #expect(MetricCardVM.count(0).countText == "0")
-    #expect(MetricCardVM.count(0, linkText: "x", linkURL: "/x").hasLink == false)
-
-    let linked = MetricCardVM.count(3, linkText: "Recent", linkURL: "/r")
-    #expect(linked.hasLink)
-    #expect(linked.linkURL == "/r")
+    #expect(MetricCardVM.count(5, href: "/x").href == "/x")
 
     #expect(
-      CatalogCardsVM.from(.failure(Abort(.badGateway)), detailURLBase: "/").volumes.ok == false)
+      CatalogCardsVM.from(.failure(Abort(.badGateway)), catalogURLBase: "/").volumes.ok == false)
 
     let stats = CatalogStats(
-      volumes: CatalogTypeStats(count: 3, mostRecent: .init(id: "v1", name: "Recent Volume")),
+      volumes: CatalogTypeStats(count: 3, mostRecent: nil),
       publishers: CatalogTypeStats(count: 0, mostRecent: nil),
       studios: CatalogTypeStats(count: 0, mostRecent: nil),
       persons: CatalogTypeStats(count: 0, mostRecent: nil),
       licenses: CatalogTypeStats(count: 0, mostRecent: nil),
       systems: CatalogTypeStats(count: 0, mostRecent: nil))
-    let cards = CatalogCardsVM.from(.success(stats), detailURLBase: "https://dev.sweetrpg.com/")
-    #expect(cards.volumes.hasLink)
-    #expect(cards.volumes.linkURL == "https://dev.sweetrpg.com/catalog/volumes/v1")
+    let cards = CatalogCardsVM.from(.success(stats), catalogURLBase: "https://dev.sweetrpg.com/")
+    #expect(cards.volumes.href == "https://dev.sweetrpg.com/catalog/browse")
+    #expect(cards.licenses.href == "https://dev.sweetrpg.com/catalog/licenses")
     #expect(cards.licenses.countText == "0")
-    #expect(cards.licenses.hasLink == false)
   }
 
-  @Test("metrics overview renders the card grid, a degraded card, and empty-type handling")
+  @Test("metrics overview renders the card grid, whole-card links, and degraded cards")
   func metricsOverviewRenders() async throws {
     try await withApp { app in
       app.views.use(.leaf)
       app.get("test-metrics") { req async throws -> View in
         let catalog = CatalogStats(
-          volumes: CatalogTypeStats(count: 2265, mostRecent: .init(id: "v9", name: "Newest Book")),
-          publishers: CatalogTypeStats(count: 42, mostRecent: .init(id: "p1", name: "A Press")),
-          studios: CatalogTypeStats(count: 8, mostRecent: .init(id: "s1", name: "A Studio")),
-          persons: CatalogTypeStats(count: 176, mostRecent: .init(id: "x1", name: "A Person")),
+          volumes: CatalogTypeStats(count: 2265, mostRecent: nil),
+          publishers: CatalogTypeStats(count: 42, mostRecent: nil),
+          studios: CatalogTypeStats(count: 8, mostRecent: nil),
+          persons: CatalogTypeStats(count: 176, mostRecent: nil),
           licenses: CatalogTypeStats(count: 0, mostRecent: nil),
           systems: CatalogTypeStats(count: 14, mostRecent: nil))
         return try await req.view.render(
           "metrics/overview",
           MetricsPageContext(
-            catalog: .from(.success(catalog), detailURLBase: "/"),
-            gameSystems: .count(14),
+            catalog: .from(.success(catalog), catalogURLBase: "/"),
+            gameSystems: .count(14, href: "/game-systems"),
             totalUsers: .count(1204),
             activeUsers: .count(137),
             newUsers: .failed,
-            activeBanners: .count(2),
-            activeMaintenance: .count(0),
+            activeBanners: .count(2, href: "/banners"),
+            activeMaintenance: .count(0, href: "/maintenance-modes"),
             userIssues: .failed,
             user: nil,
             meta: PageMeta(req)))
@@ -457,14 +453,15 @@ struct AppTests {
         // Thousands grouping.
         #expect(body.contains("2,265"))
         #expect(body.contains("1,204"))
-        // Most-recent link on a non-empty catalog card.
-        #expect(body.contains(#"<a href="/catalog/volumes/v9">Newest Book</a>"#))
-        // Zero-count catalog card: shows 0, no most-recent link.
-        #expect(!body.contains("catalog/licenses/"))
-        // Degraded cards render the unavailable state, page still renders the rest.
+        // Whole-card links: catalog browse, game systems, and an operations card into admin-web.
+        #expect(body.contains(#"<a class="metric-card-link" href="/catalog/browse""#))
+        #expect(body.contains(#"<a class="metric-card-link" href="/game-systems""#))
+        #expect(body.contains(#"<a class="metric-card-link" href="/banners""#))
+        // No most-recent sub-line any more.
+        #expect(!body.contains("metric-card-sub"))
+        // Degraded cards: unavailable state, no link.
         #expect(body.contains(#"class="metric-card metric-card-unavailable""#))
         #expect(body.contains("Unavailable"))
-        #expect(body.contains("Active banners"))
       }
     }
   }
