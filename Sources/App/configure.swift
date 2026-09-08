@@ -23,6 +23,11 @@ public func configure(_ app: Application) async throws {
   app.http.server.configuration.hostname = "0.0.0.0"
   app.http.server.configuration.port = Environment.get("PORT").flatMap(Int.init) ?? 8080
 
+  // Bound every server-to-server backend call (admin-api, users-api, auth-api, catalog-api,
+  // game-systems-api). The metrics page relies on this: a source that hangs must surface as one
+  // failed tile within a known deadline, not stall the whole page render.
+  app.http.client.configuration.timeout = .init(connect: .seconds(5), read: .seconds(10))
+
   // Creates a server-kind span per request, extracting an inbound traceparent header if present.
   // request.serviceContext is set for the request's duration, so outgoing calls via
   // request.client (AsyncHTTPClient) automatically inject the current span's context into their
@@ -43,6 +48,13 @@ public func configure(_ app: Application) async throws {
   // Loads the flat dotted-key tables I18n.swift serves to templates via `req.l10n` /
   // `#(meta.l10n.<key>)` - see I18n.swift and the AGENTS.md Localization section.
   try I18n.loadTables()
+
+  // The metrics overview page reads catalog-api / game-systems-api directly. Unset means the
+  // in-cluster DNS default is used, which won't resolve outside the cluster - warn so a
+  // misconfigured local run has an obvious cause rather than a slow-failing tile.
+  for key in ["CATALOG_API_URL", "GAME_SYSTEMS_API_URL"] where Environment.get(key) == nil {
+    app.logger.warning("\(key) not set - metrics page calls default to in-cluster DNS.")
+  }
 
   app.middleware.use(SentryMiddleware())
 

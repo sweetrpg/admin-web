@@ -1,4 +1,15 @@
 
+## 0.22.0 - 2026-09-08
+
+### Added
+- Add platform metrics overview page
+
+
+### Fixed
+- Refresh interval
+
+
+
 ## 0.21.3 - 2026-09-04
 
 ### Fixed
