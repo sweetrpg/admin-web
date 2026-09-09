@@ -56,13 +56,20 @@
 				</div>
 			</div>
 
-			<div class="metrics-chart" data-user-history="user-history-data"
-				data-label-total="#(meta.l10n.metrics_chart_total_series)"
-				data-label-new="#(meta.l10n.metrics_chart_new_series)">
-				<canvas id="user-history-chart" role="img" aria-label="#(meta.l10n.metrics_chart_users_label)"></canvas>
-				<p class="metrics-chart-empty" hidden>#(meta.l10n.metrics_chart_empty)</p>
+			<div class="metric-grid metric-grid-2">
+				<div class="metrics-chart" data-user-history="total-user-history-data"
+					data-label-total="#(meta.l10n.metrics_chart_total_series)">
+					<canvas id="total-user-history-chart" role="img" aria-label="#(meta.l10n.metrics_chart_users_label)"></canvas>
+					<p class="metrics-chart-empty" hidden>#(meta.l10n.metrics_chart_empty)</p>
+				</div>
+				<div class="metrics-chart" data-user-history="new-user-history-data"
+					data-label-total="#(meta.l10n.metrics_chart_new_series)">
+					<canvas id="new-user-history-chart" role="img" aria-label="#(meta.l10n.metrics_chart_users_label)"></canvas>
+					<p class="metrics-chart-empty" hidden>#(meta.l10n.metrics_chart_empty)</p>
+				</div>
 			</div>
-			<script type="application/json" id="user-history-data">#unsafeHTML(userHistoryJSON)</script>
+			<script type="application/json" id="total-user-history-data">#unsafeHTML(totalUserHistoryJSON)</script>
+			<script type="application/json" id="new-user-history-data">#unsafeHTML(newUserHistoryJSON)</script>
 			<script src="#(meta.sharedURL)/static/js/vendor/chart.umd.min.js"></script>
 			<script src="#(meta.sharedURL)/static/js/admin/metrics-chart.js"></script>
 

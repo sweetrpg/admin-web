@@ -451,7 +451,8 @@ struct AppTests {
             totalUsers: .count(1204),
             activeUsers: .count(137),
             newUsers: .failed,
-            userHistoryJSON: #"[{"date":"2026-09-08","total_users":1204,"new_users":3}]"#,
+            totalUserHistoryJSON: #"[{"date":"2026-09-08","total_users":1204,"new_users":3}]"#,
+            newUserHistoryJSON: #"[{"date":"2026-09-08","total_users":1204,"new_users":3}]"#,
             activeBanners: .count(2, href: "/banners"),
             activeMaintenance: .count(0, href: "/maintenance-modes"),
             userIssues: .failed,
@@ -463,9 +464,13 @@ struct AppTests {
         let body = res.body.string
         #expect(body.contains(#"class="metric-grid metric-grid-6""#))
         #expect(body.contains(#"class="metric-grid metric-grid-3""#))
-        // 30-day history chart: canvas, inline data (unescaped), Chart.js + init scripts.
-        #expect(body.contains(#"<canvas id="user-history-chart""#))
-        #expect(body.contains(#"id="user-history-data">[{"date":"2026-09-08""#))
+        // 30-day history: split total-users and new-users charts, each with its own inline
+        // data block (unescaped), plus Chart.js + init scripts.
+        #expect(body.contains(#"class="metric-grid metric-grid-2""#))
+        #expect(body.contains(#"<canvas id="total-user-history-chart""#))
+        #expect(body.contains(#"<canvas id="new-user-history-chart""#))
+        #expect(body.contains(#"id="total-user-history-data">[{"date":"2026-09-08""#))
+        #expect(body.contains(#"id="new-user-history-data">[{"date":"2026-09-08""#))
         #expect(body.contains("/static/js/vendor/chart.umd.min.js"))
         #expect(body.contains("/static/js/admin/metrics-chart.js"))
         // Thousands grouping.
