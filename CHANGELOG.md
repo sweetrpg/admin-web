@@ -1,4 +1,11 @@
 
+## 0.25.0 - 2026-09-09
+
+### Added
+- Split user-history chart into total and new-users charts
+
+
+
 ## 0.24.0 - 2026-09-08
 
 ### Added
