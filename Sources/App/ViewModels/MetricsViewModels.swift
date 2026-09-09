@@ -67,9 +67,11 @@ struct MetricsPageContext: Content {
   let totalUsers: MetricCardVM
   let activeUsers: MetricCardVM
   let newUsers: MetricCardVM
-  /// `[UserHistoryPoint]` as a JSON string for the chart's inline data block. "[]" when the
-  /// history endpoint was unavailable - the chart script then renders an empty-state note.
-  let userHistoryJSON: String
+  /// `[UserHistoryPoint]` as a JSON string, one inline data block per chart - the total-users
+  /// chart and the new-users chart each plot their own series from the same array. "[]" when the
+  /// history endpoint was unavailable; the chart script then renders an empty-state note.
+  let totalUserHistoryJSON: String
+  let newUserHistoryJSON: String
   // Operations row (3 cards)
   let activeBanners: MetricCardVM
   let activeMaintenance: MetricCardVM
