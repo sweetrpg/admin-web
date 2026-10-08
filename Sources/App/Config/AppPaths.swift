@@ -24,6 +24,13 @@ extension Request {
     Environment.get("SHARED_URL") ?? "http://localhost:8081"
   }
 
+  /// Same-origin path to the feedback-widget's submission endpoint, routed through the Ingress
+  /// (see sweetrpg/platform's add-anonymous-feedback-reporting change) - no CORS needed since
+  /// it never leaves this app's own origin. Override via env var for local development.
+  var feedbackApiURL: String {
+    Environment.get("FEEDBACK_API_URL") ?? "/api/0/admin/feedback"
+  }
+
   /// Redirects to a path on this app itself (e.g. "/login"), prefixed with `basePath`. Use this
   /// instead of `redirect(to:)` for any in-app redirect target - `redirect(to:)` is still correct
   /// as-is for external URLs (e.g. Auth0's own domain), which must not be prefixed.

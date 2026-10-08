@@ -25,6 +25,7 @@
   "theme.dark": "Dark",
   "theme.system": "System",
   "menu.user_settings": "Profile",
+  "menu.feedback": "Feedback...",
   "common.log_out": "Log out",
   "common.log_in": "Log in",
   "banners.page.section_label": "Manage",

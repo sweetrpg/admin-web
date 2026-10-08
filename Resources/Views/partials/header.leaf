@@ -49,6 +49,7 @@
 				</div>
 				<hr class="avatar-menu-divider">
 				<a class="avatar-menu-item" href="#(meta.userSettingsURL)">#(meta.l10n.menu_user_settings)</a>
+				<button type="button" id="feedback-trigger" class="avatar-menu-item">#(meta.l10n.menu_feedback)</button>
 				<hr class="avatar-menu-divider">
 				<form action="#(meta.logoutURL)" method="post" class="avatar-menu-item-form">
 					<button type="submit" class="avatar-menu-item avatar-menu-item-danger">#(meta.l10n.common_log_out)</button>
