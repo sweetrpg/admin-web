@@ -9,6 +9,7 @@
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/admin/theme.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/avatar-menu.css">
 	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/app-switcher.css">
+	<link rel="stylesheet" href="#(meta.sharedURL)/static/css/feedback-widget.css">
 	<script>
 	/* Applied synchronously, before first paint, so the page never flashes the wrong theme
 	   while theme.js (deferred) loads. */
@@ -30,5 +31,6 @@
 	<script src="#(meta.sharedURL)/static/js/avatar-menu.js" defer></script>
 	<script src="#(meta.sharedURL)/static/js/app-switcher.js" defer></script>
 	<script src="#(meta.sharedURL)/static/js/theme.js" defer></script>
+	<script src="#(meta.sharedURL)/static/js/feedback-widget.js" data-api-url="#(meta.feedbackApiURL)" data-trigger-selector="#feedback-trigger" defer></script>
 </body>
 </html>
