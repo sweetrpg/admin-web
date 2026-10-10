@@ -70,6 +70,7 @@ struct MaintenanceModeInput: Content {
 enum KnownServiceScope {
   static let all = [
     "main", "catalog", "assets", "auth", "directory", "initiative", "game_room", "users", "shared",
+    "systems",
   ]
 
   /// Maps a raw scope value (the internal identifier this app persists and sends to admin-api)
