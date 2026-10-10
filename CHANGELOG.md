@@ -1,4 +1,11 @@
 
+## 0.27.0 - 2026-10-10
+
+### Added
+- Add systems to known service scopes
+
+
+
 ## 0.26.0 - 2026-10-08
 
 ### Added
