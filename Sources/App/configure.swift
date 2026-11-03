@@ -34,6 +34,8 @@ public func configure(_ app: Application) async throws {
   // own headers - see HTTPClientRequest+Prepared.swift upstream.
   app.middleware.use(TracingMiddleware())
 
+  MetricsSetup.bootstrap(app)
+
   app.views.use(.leaf)
 
   // English only for now (no prior locale need in this app) - real CLDR-style plural rules via
