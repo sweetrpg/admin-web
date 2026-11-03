@@ -72,6 +72,32 @@ struct GrantLine: Codable, Equatable, Sendable {
   let reason: String?
   let setBy: String?
   let validUntil: String?
+  /// Payment-sourced grants only; all null on grants made before the service recorded them.
+  /// `amount` is in minor units. They describe the latest charge, and a bundle repeats the whole
+  /// charge on every grant of one purchase.
+  let purchasedAt: String?
+  let firstPurchasedAt: String?
+  let amount: Int?
+  let currency: String?
+
+  init(
+    source: String, value: EntitlementValue?, mode: String?, productId: String?, quantity: Int?,
+    reason: String?, setBy: String?, validUntil: String?, purchasedAt: String? = nil,
+    firstPurchasedAt: String? = nil, amount: Int? = nil, currency: String? = nil
+  ) {
+    self.source = source
+    self.value = value
+    self.mode = mode
+    self.productId = productId
+    self.quantity = quantity
+    self.reason = reason
+    self.setBy = setBy
+    self.validUntil = validUntil
+    self.purchasedAt = purchasedAt
+    self.firstPurchasedAt = firstPurchasedAt
+    self.amount = amount
+    self.currency = currency
+  }
 }
 
 /// Everything the service reports for one key of one user (`GET /admin/users/:id/entitlements`).
