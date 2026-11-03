@@ -17,6 +17,8 @@ data:
   # Server-to-server backend URLs, called directly Service-to-Service - no ingress in the path.
   ADMIN_API_URL: http://api-v1.sweetrpg-admin.svc.cluster.local:8000
   USERS_API_URL: http://api-v1.sweetrpg-users.svc.cluster.local:8000
+  # entitlements-api, called server to server with the acting admin's own token.
+  ENTITLEMENTS_API_URL: http://api-v1.sweetrpg-entitlements.svc.cluster.local:8000
   AUTH_API_URL: http://api-v1.sweetrpg-auth.svc.cluster.local:8000
   # Read by the metrics overview page for per-entity document counts. Pinned to api-v1, not the
   # api-v0 latest-alias - internal calls bypass the versioned ingress (docs/deployment-conventions.md).

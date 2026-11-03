@@ -69,6 +69,9 @@ struct LeafUserSummary: Content {
   /// `|`, not legal unescaped in a URL path segment - encoding it here rather than in the
   /// template keeps `list.leaf` simple and guarantees every generated URL is well-formed.
   let id: String
+  /// `users-api`'s canonical user ID, percent-encoded - what `entitlements-api` keys on, unlike
+  /// `id` above (the Auth0 subject `auth-api` keys on).
+  let userID: String
   let email: String
   let roles: [String]
   let deniedServices: [String]
@@ -76,8 +79,11 @@ struct LeafUserSummary: Content {
   /// submit a role the user already has.
   let availableRoles: [String]
 
-  init(subject: String, email: String, roles: [String], deniedServices: [String]) {
+  init(
+    subject: String, userID: String = "", email: String, roles: [String], deniedServices: [String]
+  ) {
     self.id = subject.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? subject
+    self.userID = userID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? userID
     self.email = email
     self.roles = roles
     self.deniedServices = deniedServices

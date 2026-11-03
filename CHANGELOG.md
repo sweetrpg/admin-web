@@ -1,4 +1,12 @@
 
+## 0.29.0 - 2026-11-03
+
+### Added
+- Add per-user entitlements page
+- Show purchase amount and date in the paid-reduction warning
+
+
+
 ## 0.28.0 - 2026-11-03
 
 ### Added

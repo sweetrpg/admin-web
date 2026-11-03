@@ -21,6 +21,7 @@
 					<th>#(meta.l10n.users_column_email)</th>
 					<th>#(meta.l10n.users_column_roles)</th>
 					<th>#(meta.l10n.users_column_denied_services)</th>
+					<th>#(meta.l10n.users_column_entitlements)</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -58,6 +59,11 @@
 								<input type="text" name="service" placeholder="#(meta.l10n.users_placeholder_service_name)" required>
 								<button type="submit" class="btn btn-ghost">#(meta.l10n.users_action_deny_service)</button>
 							</form>
+						</td>
+						<td>
+							#if(u.userID):
+								<a href="#(meta.basePath)/users/#(u.userID)/entitlements">#(meta.l10n.users_action_entitlements)</a>
+							#endif
 						</td>
 					</tr>
 				#endfor
