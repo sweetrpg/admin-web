@@ -206,5 +206,7 @@
   "entitlements.error_paid_reductions_disabled": "Reducing paid values is turned off for now.",
   "entitlements.error_unavailable": "The change could not be saved because entitlements-api is not available.",
   "users.action.entitlements": "Entitlements",
-  "users.column.entitlements": "Entitlements"
+  "users.column.entitlements": "Entitlements",
+  "entitlements.not_recorded": "not recorded",
+  "entitlements.warning_charges": "What the user paid (one line per purchase):"
 }

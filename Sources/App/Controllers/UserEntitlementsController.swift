@@ -199,6 +199,7 @@ struct UserEntitlementsController: RouteCollection {
         proposed: EntitlementsPresenter.display(detail?.proposed ?? value, l10n: l10n),
         paid: EntitlementsPresenter.display(paid, l10n: l10n),
         payments: payments.map { EntitlementsPresenter.line($0, l10n: l10n) },
+        charges: EntitlementsPresenter.charges(payments, l10n: l10n),
         reference: reference, errorMessage: error,
         user: (await req.currentUser).map(LeafUser.init), meta: PageMeta(req)))
   }
@@ -221,7 +222,7 @@ struct UserEntitlementsController: RouteCollection {
           EntitlementConfirmContext(
             userID: encoded(userID), key: key, isPaidReduction: false, isLowering: false,
             isRemove: true, value: "", reason: reason, validUntil: "", current: "", proposed: "",
-            paid: "", payments: [], reference: "",
+            paid: "", payments: [], charges: [], reference: "",
             errorMessage: form.confirmed == "yes"
               ? l10n["entitlements_error_reason_required"] : nil,
             user: (await req.currentUser).map(LeafUser.init), meta: PageMeta(req)))

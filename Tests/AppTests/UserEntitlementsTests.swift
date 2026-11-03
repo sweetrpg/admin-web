@@ -342,6 +342,47 @@ struct OverrideFormTests {
   }
 }
 
+@Suite("Payment detail")
+struct PaymentDetailTests {
+  private func bundleGrant(amount: Int?, at: String?) -> GrantLine {
+    GrantLine(
+      source: "stripe_purchase", value: .count(5), mode: nil, productId: "pack", quantity: 1,
+      reason: nil, setBy: nil, validUntil: nil, purchasedAt: at, firstPurchasedAt: at,
+      amount: amount, currency: amount == nil ? nil : "usd")
+  }
+
+  @Test("a bundle's repeated charge is shown once, not summed")
+  func bundleShownOnce() {
+    let grants = [
+      bundleGrant(amount: 1250, at: "2026-10-01T12:00:00Z"),
+      bundleGrant(amount: 1250, at: "2026-10-01T12:00:00Z"),
+    ]
+    let charges = EntitlementsPresenter.charges(grants, l10n: [:])
+    #expect(charges.count == 1)
+    #expect(charges.first?.value == "12.50 USD, 2026-10-01")
+  }
+
+  @Test("null amount and date render as not recorded")
+  func notRecorded() {
+    let charges = EntitlementsPresenter.charges(
+      [bundleGrant(amount: nil, at: nil)], l10n: ["entitlements_not_recorded": "not recorded"])
+    #expect(charges.first?.value == "not recorded, not recorded")
+  }
+
+  @Test("the 409 body decodes payment fields, and old grants without them still decode")
+  func decodes() throws {
+    let json =
+      #"{"source":"stripe_purchase","value":5,"created_at":"x","purchased_at":"2026-10-01T12:00:00Z","amount":1250,"currency":"usd"}"#
+    let decoder = JSONDecoder()
+    decoder.keyDecodingStrategy = .convertFromSnakeCase
+    let grant = try decoder.decode(GrantLine.self, from: Data(json.utf8))
+    #expect(grant.amount == 1250 && grant.currency == "usd")
+    let old = try decoder.decode(
+      GrantLine.self, from: Data(#"{"source":"stripe_purchase","value":5}"#.utf8))
+    #expect(old.amount == nil && old.purchasedAt == nil)
+  }
+}
+
 @Suite("Entitlements wiring")
 struct EntitlementsWiringTests {
   @Test("the users list links each row to its entitlements page under the path prefix")

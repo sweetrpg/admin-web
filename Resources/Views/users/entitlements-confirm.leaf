@@ -31,6 +31,12 @@
 							<li>#(p.label): #(p.value)</li>
 						#endfor
 					</ul>
+					<p>#(meta.l10n.entitlements_warning_charges)</p>
+					<ul>
+						#for(c in charges):
+							<li>#(c.label): #(c.value)</li>
+						#endfor
+					</ul>
 					<p>#(meta.l10n.entitlements_warning_liability)</p>
 					<p>#(meta.l10n.entitlements_warning_refund)</p>
 				</div>

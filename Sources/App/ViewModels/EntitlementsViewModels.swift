@@ -62,6 +62,8 @@ struct EntitlementConfirmContext: Content {
   let proposed: String
   let paid: String
   let payments: [LeafLine]
+  /// One line per purchase (not per grant), with amount and date or "not recorded".
+  let charges: [LeafLine]
   let reference: String
   let errorMessage: String?
   let user: LeafUser?
@@ -83,6 +85,31 @@ enum EntitlementsPresenter {
     if let quantity = grant.quantity, quantity > 0 { label += " x\(quantity)" }
     if let until = grant.validUntil { label += " (\(until))" }
     return LeafLine(label: label, value: grant.value.map { display($0, l10n: l10n) } ?? "")
+  }
+
+  /// One charge per purchase: grants sharing a product and purchase time are one bundle, and the
+  /// service repeats the whole charge on each, so it is shown once and never summed.
+  static func charges(_ payments: [GrantLine], l10n: [String: String]) -> [LeafLine] {
+    let notRecorded = l10n["entitlements_not_recorded"] ?? "not recorded"
+    var seen = Set<String>()
+    var lines: [LeafLine] = []
+    for payment in payments {
+      let product = payment.productId ?? payment.source
+      let id = "\(product)|\(payment.purchasedAt ?? "")"
+      guard seen.insert(id).inserted else { continue }
+      let amount =
+        payment.amount.map { formatAmount($0, currency: payment.currency) } ?? notRecorded
+      let date = payment.purchasedAt.map { String($0.prefix(10)) } ?? notRecorded
+      lines.append(LeafLine(label: product, value: "\(amount), \(date)"))
+    }
+    return lines
+  }
+
+  /// Minor units to a decimal amount; assumes two decimal places, which holds for the currencies
+  /// the platform bills in.
+  static func formatAmount(_ minor: Int, currency: String?) -> String {
+    let text = String(format: "%d.%02d", minor / 100, abs(minor % 100))
+    return currency.map { "\(text) \($0.uppercased())" } ?? text
   }
 
   static func row(
