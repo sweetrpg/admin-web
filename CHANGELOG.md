@@ -1,4 +1,11 @@
 
+## 0.28.0 - 2026-11-03
+
+### Added
+- Serve Prometheus metrics at /metrics
+
+
+
 ## 0.27.0 - 2026-10-10
 
 ### Added
