@@ -45,6 +45,16 @@ catalog-web (no CORS concern for server-to-server calls).
   since neither service alone has both halves of what the management UI needs to display - see
   `sweetrpg/platform`'s `split-authz-into-auth-api` change design.md.
 
+- **entitlements-api**: per-user entitlement explanation and overrides -
+  `GET /admin/users/:id/entitlements`, `PUT`/`DELETE /admin/users/:id/overrides/:key`, and
+  `GET /admin/users/:id/audit` (requested from the service; until it exists the page's history
+  section shows as unavailable). Called via `EntitlementsAPIClient.swift` behind the
+  `EntitlementsServing` protocol, with the acting admin's own token forwarded; `UserEntitlementsController`
+  renders the page at `/users/<canonical user id>/entitlements`. `ENTITLEMENTS_API_URL` is required
+  and fails startup when unset. Reducing a value below the paid value goes through a warning page
+  that needs an acknowledgment and reference. The Initiative credentials section (and
+  `INITIATIVE_API_URL`) is not built yet: `initiative-api` does not exist.
+
 ### Known gap: no documented admin-listing endpoint
 
 `specs/banner-messages/spec.md` (in `sweetrpg/platform`'s `add-banner-messages` OpenSpec change)

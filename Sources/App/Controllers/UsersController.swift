@@ -67,7 +67,8 @@ struct UsersController: RouteCollection {
     let summaries = withSubject.map { identity, subject -> LeafUserSummary in
       let roles = rolesBySubject[subject]
       return LeafUserSummary(
-        subject: subject, email: identity.email, roles: roles?.roles ?? ["user"],
+        subject: subject, userID: identity.id, email: identity.email,
+        roles: roles?.roles ?? ["user"],
         deniedServices: roles?.deniedServices ?? [])
     }
 

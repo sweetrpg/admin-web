@@ -1,0 +1,71 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">#(meta.l10n.users_page_section_label)</span>
+			<h2>#(key)</h2>
+		</section>
+
+		#if(errorMessage):
+			<p class="form-error" role="alert">#(errorMessage)</p>
+		#endif
+
+		#if(isRemove):
+			<p>#(meta.l10n.entitlements_confirm_remove)</p>
+			<form class="form" action="#(meta.basePath)/users/#(userID)/entitlements/#(key)/remove" method="post">
+				<input type="hidden" name="confirmed" value="yes">
+				<label class="form-label" for="reason">#(meta.l10n.entitlements_field_reason)</label>
+				<input class="input" type="text" id="reason" name="reason" value="#(reason)" maxlength="500" required>
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary">#(meta.l10n.entitlements_action_remove)</button>
+					<a class="btn btn-ghost" href="#(meta.basePath)/users/#(userID)/entitlements">#(meta.l10n.common_cancel)</a>
+				</div>
+			</form>
+		#else:
+			#if(isPaidReduction):
+				<div class="paid-warning" role="alert" style="border:2px solid #b00020;padding:1rem;margin-bottom:1rem">
+					<h3>#(meta.l10n.entitlements_warning_title)</h3>
+					<p>#(meta.l10n.entitlements_warning_paid): <strong>#(paid)</strong></p>
+					<p>#(meta.l10n.entitlements_warning_proposed): <strong>#(proposed)</strong></p>
+					<ul>
+						#for(p in payments):
+							<li>#(p.label): #(p.value)</li>
+						#endfor
+					</ul>
+					<p>#(meta.l10n.entitlements_warning_liability)</p>
+					<p>#(meta.l10n.entitlements_warning_refund)</p>
+				</div>
+			#else:
+				<p>#(meta.l10n.entitlements_confirm_lowering_prefix)#(current)#(meta.l10n.entitlements_confirm_lowering_middle)#(proposed)#(meta.l10n.entitlements_confirm_lowering_suffix)</p>
+			#endif
+
+			<form class="form" action="#(meta.basePath)/users/#(userID)/entitlements/#(key)/override" method="post">
+				<input type="hidden" name="confirmed" value="yes">
+				<input type="hidden" name="value" value="#(value)">
+				<input type="hidden" name="reason" value="#(reason)">
+				<input type="hidden" name="valid_until" value="#(validUntil)">
+				#if(isPaidReduction):
+					<label class="form-label"><input type="checkbox" id="ack-checkbox" name="acknowledged" value="yes"> #(meta.l10n.entitlements_warning_acknowledge)</label>
+					<label class="form-label" for="ack-reference">#(meta.l10n.entitlements_warning_reference)</label>
+					<input class="input" type="text" id="ack-reference" name="reference" value="#(reference)" maxlength="200">
+				#endif
+				<div class="form-actions">
+					<button type="submit" id="ack-submit" class="btn btn-primary" #if(isPaidReduction): disabled #endif>#(meta.l10n.entitlements_action_confirm)</button>
+					<a class="btn btn-ghost" href="#(meta.basePath)/users/#(userID)/entitlements">#(meta.l10n.common_cancel)</a>
+				</div>
+			</form>
+			#if(isPaidReduction):
+				<script>
+					(function () {
+						var box = document.getElementById('ack-checkbox');
+						var ref = document.getElementById('ack-reference');
+						var btn = document.getElementById('ack-submit');
+						function sync() { btn.disabled = !(box.checked && ref.value.trim() !== ''); }
+						box.addEventListener('change', sync);
+						ref.addEventListener('input', sync);
+						sync();
+					})();
+				</script>
+			#endif
+		#endif
+	#endexport
+#endextend

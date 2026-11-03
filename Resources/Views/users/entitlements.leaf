@@ -1,0 +1,107 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">#(meta.l10n.users_page_section_label)</span>
+			<h2>#(meta.l10n.entitlements_page_title)</h2>
+			<p><a href="#(meta.basePath)/users">#(meta.l10n.entitlements_back_to_users)</a></p>
+		</section>
+
+		#if(errorMessage):
+			<p class="form-error" role="alert">#(errorMessage)</p>
+		#endif
+
+		#if(unavailable):
+			<p class="empty-state">#(meta.l10n.entitlements_unavailable)</p>
+		#else:
+			#if(notFound):
+				<p class="empty-state">#(meta.l10n.entitlements_not_found)</p>
+			#else:
+				#for(row in rows):
+					<section class="card" id="key-#(row.key)">
+						<h3>#(row.key)</h3>
+						<table class="table">
+							<tbody>
+								<tr><th scope="row">#(meta.l10n.entitlements_default)</th><td>#(row.defaultValue)</td></tr>
+								<tr>
+									<th scope="row">#(meta.l10n.entitlements_tier_grants)</th>
+									<td>#for(g in row.tierGrants): <div>#(g.label): #(g.value)</div> #endfor</td>
+								</tr>
+								<tr>
+									<th scope="row">#(meta.l10n.entitlements_purchased)</th>
+									<td>#for(g in row.grants): <div>#(g.label): #(g.value)</div> #endfor</td>
+								</tr>
+								<tr>
+									<th scope="row">#(meta.l10n.entitlements_paid)</th>
+									<td>#(row.paid)
+										#for(p in row.payments): <div>#(p.label): #(p.value)</div> #endfor
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">#(meta.l10n.entitlements_override)</th>
+									<td>
+										#if(row.hasOverride):
+											<div>#(row.overrideValue)</div>
+											<div>#(meta.l10n.entitlements_override_reason): #(row.overrideReason)</div>
+											<div>#(meta.l10n.entitlements_override_set_by): #(row.overrideSetBy)</div>
+											#if(row.overrideValidUntil):
+												<div>#(meta.l10n.entitlements_override_ends): #(row.overrideValidUntil)</div>
+											#endif
+											#if(row.reducesPaid):
+												<div class="tag tag-critical">#(meta.l10n.entitlements_reduces_paid)</div>
+												#if(row.paidReductionReference):
+													<div>#(meta.l10n.entitlements_reference): #(row.paidReductionReference)</div>
+												#endif
+											#endif
+											<form action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/remove" method="post" style="display:inline">
+												<button type="submit" class="btn btn-ghost">#(meta.l10n.entitlements_action_remove)</button>
+											</form>
+										#else:
+											#(meta.l10n.entitlements_no_override)
+										#endif
+									</td>
+								</tr>
+								<tr><th scope="row">#(meta.l10n.entitlements_effective)</th><td><strong>#(row.effective)</strong></td></tr>
+							</tbody>
+						</table>
+
+						<form class="form" action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/override" method="post">
+							<label class="form-label" for="value-#(row.key)">#(meta.l10n.entitlements_field_value)</label>
+							<input class="input" type="text" id="value-#(row.key)" name="value" value="#(row.formValue)" required>
+							<label class="form-label" for="reason-#(row.key)">#(meta.l10n.entitlements_field_reason)</label>
+							<input class="input" type="text" id="reason-#(row.key)" name="reason" maxlength="500" required>
+							<label class="form-label" for="until-#(row.key)">#(meta.l10n.entitlements_field_valid_until)</label>
+							<input class="input" type="date" id="until-#(row.key)" name="valid_until">
+							<div class="form-actions">
+								<button type="submit" class="btn btn-primary">#(meta.l10n.entitlements_action_set)</button>
+							</div>
+						</form>
+					</section>
+				#endfor
+
+				<section class="card">
+					<h3>#(meta.l10n.entitlements_audit_title)</h3>
+					#if(auditUnavailable):
+						<p class="empty-state">#(meta.l10n.entitlements_audit_unavailable)</p>
+					#else:
+						<table class="table">
+							<thead>
+								<tr>
+									<th>#(meta.l10n.entitlements_audit_when)</th>
+									<th>#(meta.l10n.entitlements_audit_who)</th>
+									<th>#(meta.l10n.entitlements_audit_key)</th>
+									<th>#(meta.l10n.entitlements_audit_change)</th>
+									<th>#(meta.l10n.entitlements_audit_reason)</th>
+								</tr>
+							</thead>
+							<tbody>
+								#for(a in audit):
+									<tr><td>#(a.at)</td><td>#(a.actor)</td><td>#(a.key)</td><td>#(a.change)</td><td>#(a.reason)</td></tr>
+								#endfor
+							</tbody>
+						</table>
+					#endif
+				</section>
+			#endif
+		#endif
+	#endexport
+#endextend
