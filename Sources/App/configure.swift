@@ -56,6 +56,12 @@ public func configure(_ app: Application) async throws {
     app.logger.warning("\(key) not set - metrics page calls default to in-cluster DNS.")
   }
 
+  // Fails startup naming the variable. Skipped under test so the many tests that build the full
+  // app do not each need the variable; the page tests install a stub service instead.
+  if app.environment != .testing {
+    app.entitlementsAPIConfig = try EntitlementsAPIConfig.fromEnvironment()
+  }
+
   app.middleware.use(SentryMiddleware())
 
   app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))

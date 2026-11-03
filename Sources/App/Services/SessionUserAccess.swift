@@ -26,7 +26,8 @@ extension Request {
   /// write this read-only consumer must never make.
   var currentUser: SessionUser? {
     get async {
-      await withSpan("session-user-access") { _ in
+      if let provider = application.sessionUserProvider { return await provider(self) }
+      return await withSpan("session-user-access") { _ in
         guard application.sharedSessionRedisConfigured else { return nil }
         guard let sessionID = cookies[sharedSessionCookieName]?.string else { return nil }
 
@@ -48,6 +49,16 @@ extension Request {
 }
 
 extension Application {
+  private struct SessionUserProviderKey: StorageKey {
+    typealias Value = @Sendable (Request) async -> SessionUser?
+  }
+
+  /// Replaces the Redis session lookup; used by tests, which cannot populate auth-web's Redis.
+  var sessionUserProvider: (@Sendable (Request) async -> SessionUser?)? {
+    get { storage[SessionUserProviderKey.self] }
+    set { storage[SessionUserProviderKey.self] = newValue }
+  }
+
   private struct SharedSessionRedisConfiguredKey: StorageKey {
     typealias Value = Bool
   }
