@@ -1,5 +1,6 @@
 #extend("base"):
 	#export("body"):
+		<div id="confirm-fragment">
 		<section class="page-header">
 			<span class="section-label">#(meta.l10n.users_page_section_label)</span>
 			<h2>#(key)</h2>
@@ -11,7 +12,7 @@
 
 		#if(isRemove):
 			<p>#(meta.l10n.entitlements_confirm_remove)</p>
-			<form class="form" action="#(meta.basePath)/users/#(userID)/entitlements/#(key)/remove" method="post">
+			<form class="form" data-dialog-form action="#(meta.basePath)/users/#(userID)/entitlements/#(key)/remove" method="post">
 				<input type="hidden" name="confirmed" value="yes">
 				<label class="form-label" for="reason">#(meta.l10n.entitlements_field_reason)</label>
 				<input class="input" type="text" id="reason" name="reason" value="#(reason)" maxlength="500" required>
@@ -44,7 +45,7 @@
 				<p>#(meta.l10n.entitlements_confirm_lowering_prefix)#(current)#(meta.l10n.entitlements_confirm_lowering_middle)#(proposed)#(meta.l10n.entitlements_confirm_lowering_suffix)</p>
 			#endif
 
-			<form class="form" action="#(meta.basePath)/users/#(userID)/entitlements/#(key)/override" method="post">
+			<form class="form" data-dialog-form action="#(meta.basePath)/users/#(userID)/entitlements/#(key)/override" method="post">
 				<input type="hidden" name="confirmed" value="yes">
 				<input type="hidden" name="value" value="#(value)">
 				<input type="hidden" name="reason" value="#(reason)">
@@ -73,5 +74,6 @@
 				</script>
 			#endif
 		#endif
+		</div>
 	#endexport
 #endextend

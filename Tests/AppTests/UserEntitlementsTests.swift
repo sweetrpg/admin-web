@@ -342,6 +342,97 @@ struct OverrideFormTests {
   }
 }
 
+@Suite("Entitlements list and dialogs", .serialized)
+struct EntitlementsListTests {
+  @Test("one row per key with type, effective value, source hint, paid indicator and Edit")
+  func tableRows() async throws {
+    let stub = StubEntitlements(records: [freeKey, paidKey])
+    try await withStub(stub) { app in
+      try await app.testing().test(.GET, "users/u1/entitlements") { res in
+        let body = res.body.string
+        #expect(body.contains("<table class=\"table entitlements-table\">"))
+        #expect(body.contains("<td>initiative.connections</td>"))
+        #expect(body.contains("<td>limit</td>"))
+        #expect(body.contains(">default</span>"))
+        #expect(body.contains(">override</span>"))
+        #expect(body.contains("Paid: 10"))
+        #expect(body.components(separatedBy: "data-dialog-open=\"dlg-").count - 1 == 2)
+      }
+    }
+  }
+
+  @Test("each Edit link falls back to the single-key page and opens a native dialog with JS")
+  func editFallbackAndDialog() async throws {
+    let stub = StubEntitlements(records: [paidKey])
+    try await withStub(stub) { app in
+      try await app.testing().test(.GET, "users/u1/entitlements") { res in
+        let body = res.body.string
+        #expect(
+          body.contains(
+            "href=\"/users/u1/entitlements/initiative.theme_slots\"")
+        )
+        #expect(
+          body.contains("<dialog class=\"dialog dialog-wide\" id=\"dlg-initiative.theme_slots\""))
+        #expect(body.contains("showModal"))
+        #expect(body.contains("free (default): 5"))
+      }
+      try await app.testing().test(.GET, "users/u1/entitlements/initiative.theme_slots") { res in
+        #expect(res.status == .ok)
+        let body = res.body.string
+        #expect(body.contains("initiative.theme_slots"))
+        #expect(body.contains("/users/u1/entitlements/initiative.theme_slots/override"))
+        #expect(!body.contains("<dialog"))
+      }
+    }
+  }
+
+  @Test("the paid-reduction confirmation can be lifted into the dialog")
+  func confirmFragment() async throws {
+    let stub = StubEntitlements(records: [paidKey])
+    try await withStub(stub) { app in
+      try await app.testing().test(
+        .POST, "users/u1/entitlements/initiative.theme_slots/override", headers: form,
+        body: ByteBuffer(string: "value=3&reason=abuse")
+      ) { res in
+        let body = res.body.string
+        #expect(body.contains("id=\"confirm-fragment\""))
+        #expect(body.contains("data-dialog-form"))
+      }
+    }
+  }
+}
+
+@Suite("Users page capsules and selects", .serialized)
+struct UsersPageStyleTests {
+  @Test(
+    "roles render as removable capsules with a confirm dialog, and selects use the shared style")
+  func capsules() async throws {
+    try await withApp { app in
+      try I18n.loadTables()
+      app.views.use(.leaf)
+      app.get("test-users") { req async throws -> View in
+        let summary = LeafUserSummary(
+          subject: "abc", userID: "u1", email: "alice@example.com", roles: ["user", "admin"],
+          deniedServices: ["catalog"])
+        return try await req.view.render(
+          "users/list",
+          UsersListContext(
+            users: [summary], isEmpty: false, allRoles: UsersController.allRoles,
+            unavailable: false, user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-users") { res in
+        let body = res.body.string
+        #expect(body.contains("tag tag-neutral tag-removable"))
+        #expect(body.contains("class=\"tag-remove\""))
+        #expect(body.contains("Remove the admin role from alice@example.com?"))
+        #expect(body.contains("onsubmit=\"return confirm(this.dataset.confirm)\""))
+        #expect(body.contains("tag tag-critical tag-removable"))
+        #expect(body.contains("<select class=\"input input-inline\" name=\"role\""))
+      }
+    }
+  }
+}
+
 @Suite("Payment detail")
 struct PaymentDetailTests {
   private func bundleGrant(amount: Int?, at: String?) -> GrantLine {
