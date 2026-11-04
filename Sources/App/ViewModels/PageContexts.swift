@@ -58,8 +58,25 @@ struct UsersListContext: Content {
   /// True when the users-api/auth-api composition failed - the page renders a clear
   /// "unavailable" state instead of a raw 500 error page.
   let unavailable: Bool
+  /// True when a backend answered with an error status; `refusedMessage` is its message, if any.
+  let refused: Bool
+  let refusedMessage: String?
   let user: LeafUser?
   let meta: PageMeta
+
+  init(
+    users: [LeafUserSummary], isEmpty: Bool, allRoles: [String], unavailable: Bool,
+    refused: Bool = false, refusedMessage: String? = nil, user: LeafUser?, meta: PageMeta
+  ) {
+    self.users = users
+    self.isEmpty = isEmpty
+    self.allRoles = allRoles
+    self.unavailable = unavailable
+    self.refused = refused
+    self.refusedMessage = refusedMessage
+    self.user = user
+    self.meta = meta
+  }
 }
 
 struct LeafUserSummary: Content {

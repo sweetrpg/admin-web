@@ -211,5 +211,7 @@
   "entitlements.warning_charges": "What the user paid (one line per purchase):",
   "footer.terms": "Terms of Service",
   "footer.privacy": "Privacy Policy",
-  "footer.support": "Support"
+  "footer.support": "Support",
+  "users.refused": "The backend refused the request, so the user list cannot be shown.",
+  "users.refused_detail": "Backend message:"
 }

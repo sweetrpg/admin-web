@@ -29,6 +29,18 @@ struct UsersController: RouteCollection {
     try await withSpan("list-users") { _ in
       do {
         return try await renderList(req: req)
+      } catch let error as BackendHTTPError {
+        // The backend answered with an error: say so, with its message, instead of claiming it
+        // could not be reached (which hid a 400 from auth-api for a day).
+        req.logger.error(
+          "list: \(error.backend) refused the request: status \(error.status.code), message \(error.message ?? "none") (GET /users)"
+        )
+        return try await req.view.render(
+          "users/list",
+          UsersListContext(
+            users: [], isEmpty: false, allRoles: Self.allRoles, unavailable: false,
+            refused: true, refusedMessage: error.displayMessage,
+            user: (await req.currentUser).map(LeafUser.init), meta: PageMeta(req)))
       } catch {
         // Backend composition failure (users-api identity listing or auth-api roles) should not
         // surface as a raw 500 error page - render the page shell with a clear unavailable state.

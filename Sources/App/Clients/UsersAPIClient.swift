@@ -64,10 +64,7 @@ struct UsersAPIClient {
       let response = try await client.get(URI(string: baseURL + "/admin/users")) { req in
         req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
       }
-      guard (200..<300).contains(response.status.code) else {
-        throw Abort(
-          response.status, reason: "users-api request failed with status \(response.status.code)")
-      }
+      try BackendHTTPError.check(response, backend: "users-api")
       return try response.content.decode([UserIdentity].self)
     }
   }
@@ -81,10 +78,7 @@ struct UsersAPIClient {
       ) { req in
         req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
       }
-      guard (200..<300).contains(response.status.code) else {
-        throw Abort(
-          response.status, reason: "users-api request failed with status \(response.status.code)")
-      }
+      try BackendHTTPError.check(response, backend: "users-api")
       return try response.content.decode([UserHistoryPoint].self)
     }
   }
@@ -97,10 +91,7 @@ struct UsersAPIClient {
       let response = try await client.get(URI(string: baseURL + "/admin/stats")) { req in
         req.headers.bearerAuthorization = BearerAuthorization(token: accessToken)
       }
-      guard (200..<300).contains(response.status.code) else {
-        throw Abort(
-          response.status, reason: "users-api request failed with status \(response.status.code)")
-      }
+      try BackendHTTPError.check(response, backend: "users-api")
       return try response.content.decode(UserStats.self)
     }
   }

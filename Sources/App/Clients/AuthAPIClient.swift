@@ -180,10 +180,7 @@ struct AuthAPIClient {
   }
 
   private static func throwOnFailure(_ response: ClientResponse) throws {
-    guard (200..<300).contains(response.status.code) else {
-      throw Abort(
-        response.status, reason: "auth-api request failed with status \(response.status.code)")
-    }
+    try BackendHTTPError.check(response, backend: "auth-api")
   }
 }
 
