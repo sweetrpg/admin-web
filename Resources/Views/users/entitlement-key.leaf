@@ -1,0 +1,10 @@
+#extend("base"):
+	#export("body"):
+		<section class="page-header">
+			<span class="section-label">#(meta.l10n.users_page_section_label)</span>
+			<h2>#(row.key)</h2>
+			<p><a href="#(meta.basePath)/users/#(userID)/entitlements">#(meta.l10n.entitlements_back_to_list)</a></p>
+		</section>
+		#extend("users/partials/entitlement-detail")
+	#endexport
+#endextend

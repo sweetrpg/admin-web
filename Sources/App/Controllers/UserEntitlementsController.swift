@@ -12,6 +12,7 @@ struct UserEntitlementsController: RouteCollection {
   /// here it carries `users-api`'s canonical user ID.
   func boot(routes: RoutesBuilder) throws {
     routes.get("users", ":subject", "entitlements", use: show)
+    routes.get("users", ":subject", "entitlements", ":key", use: showKey)
     routes.post("users", ":subject", "entitlements", ":key", "override", use: setOverride)
     routes.post("users", ":subject", "entitlements", ":key", "remove", use: removeOverride)
   }
@@ -45,6 +46,32 @@ struct UserEntitlementsController: RouteCollection {
     try await withSpan("show-user-entitlements") { _ in
       let (userID, _, token) = try await context(req)
       return try await renderPage(req, userID: userID, token: token, errorMessage: nil)
+    }
+  }
+
+  /// No-JavaScript fallback for a row's Edit button: the same detail and forms the dialog holds,
+  /// on a page of their own.
+  @Sendable
+  func showKey(req: Request) async throws -> View {
+    try await withSpan("show-user-entitlement-key") { _ in
+      let (userID, keyParam, token) = try await context(req)
+      guard let key = keyParam else { throw Abort(.badRequest) }
+      let l10n = req.l10n
+      let records: [EntitlementRecord]
+      do {
+        records = try await req.entitlements.read(userID: userID, accessToken: token)
+      } catch {
+        req.logger.error("entitlements read failed: \(error)")
+        throw Abort(.badGateway)
+      }
+      guard let record = records.first(where: { $0.key == key }) else { throw Abort(.notFound) }
+      let audit =
+        (try? await req.entitlements.recentAudit(userID: userID, accessToken: token)) ?? []
+      return try await req.view.render(
+        "users/entitlement-key",
+        EntitlementKeyContext(
+          userID: encoded(userID), row: EntitlementsPresenter.row(record, audit: audit, l10n: l10n),
+          user: (await req.currentUser).map(LeafUser.init), meta: PageMeta(req)))
     }
   }
 
