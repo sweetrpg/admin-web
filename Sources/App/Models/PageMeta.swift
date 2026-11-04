@@ -13,6 +13,7 @@ struct PageMeta: Content {
   /// First 8 chars of the build sha - matches catalog-web's `PageMeta.buildHash` and
   /// main-web's own convention, rather than dumping the full 40-char sha in the footer.
   let buildHash: String
+  let footer: FooterMeta
   /// `auth-web`'s login/logout links, each with `return_to` set to this request's own full path
   /// (including `basePath`). `auth-web` sits at `/auth` on the same host root, not under this
   /// app's own `basePath` - see design.md's "auth-web is the sole owner of the Authorization
@@ -37,6 +38,7 @@ struct PageMeta: Content {
     self.buildVersion = req.buildInfo.version
     self.buildDate = req.buildInfo.date
     self.buildHash = String(req.buildInfo.sha.prefix(8))
+    self.footer = FooterMeta(rootURL: req.rootURL, version: req.buildInfo.version)
     let returnTo = "\(req.basePath)\(req.url.path)"
     let encodedReturnTo =
       returnTo.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "/"

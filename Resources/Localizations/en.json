@@ -208,5 +208,8 @@
   "users.action.entitlements": "Entitlements",
   "users.column.entitlements": "Entitlements",
   "entitlements.not_recorded": "not recorded",
-  "entitlements.warning_charges": "What the user paid (one line per purchase):"
+  "entitlements.warning_charges": "What the user paid (one line per purchase):",
+  "footer.terms": "Terms of Service",
+  "footer.privacy": "Privacy Policy",
+  "footer.support": "Support"
 }
