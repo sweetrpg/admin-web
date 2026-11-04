@@ -7,6 +7,11 @@ struct LeafLine: Content {
 
 struct LeafEntitlementRow: Content {
   let key: String
+  let type: String
+  /// Where the effective value comes from, in one word: override, purchased or default.
+  let sourceHint: String
+  let hasPaid: Bool
+  let charges: [LeafLine]
   let defaultValue: String
   let effective: String
   let paid: String
@@ -45,6 +50,13 @@ struct EntitlementsPageContext: Content {
   let unavailable: Bool
   let notFound: Bool
   let errorMessage: String?
+  let user: LeafUser?
+  let meta: PageMeta
+}
+
+struct EntitlementKeyContext: Content {
+  let userID: String
+  let row: LeafEntitlementRow
   let user: LeafUser?
   let meta: PageMeta
 }
@@ -122,8 +134,16 @@ enum EntitlementsPresenter {
       ? audit.first {
         $0.paidReduction == true && $0.subject.hasSuffix("/" + record.key)
       }?.reference ?? "" : ""
+    let hint =
+      override != nil
+      ? "entitlements_source_override"
+      : (record.payments.isEmpty ? "entitlements_source_default" : "entitlements_source_purchased")
     return LeafEntitlementRow(
       key: record.key,
+      type: record.type,
+      sourceHint: l10n[hint] ?? hint,
+      hasPaid: !record.payments.isEmpty,
+      charges: charges(record.payments, l10n: l10n),
       defaultValue: record.default.map { display($0, l10n: l10n) } ?? "",
       effective: display(record.effective, l10n: l10n),
       paid: display(record.paid, l10n: l10n),

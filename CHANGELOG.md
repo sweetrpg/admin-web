@@ -1,4 +1,15 @@
 
+## 0.31.0 - 2026-11-04
+
+### Added
+- Role capsules, styled selects and an entitlements table with edit dialogs
+
+
+### Fixed
+- Tell a refusing backend apart from an unreachable one
+
+
+
 ## 0.30.0 - 2026-11-04
 
 ### Added

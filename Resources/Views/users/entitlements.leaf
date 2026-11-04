@@ -16,66 +16,43 @@
 			#if(notFound):
 				<p class="empty-state">#(meta.l10n.entitlements_not_found)</p>
 			#else:
-				#for(row in rows):
-					<section class="card" id="key-#(row.key)">
-						<h3>#(row.key)</h3>
-						<table class="table">
-							<tbody>
-								<tr><th scope="row">#(meta.l10n.entitlements_default)</th><td>#(row.defaultValue)</td></tr>
-								<tr>
-									<th scope="row">#(meta.l10n.entitlements_tier_grants)</th>
-									<td>#for(g in row.tierGrants): <div>#(g.label): #(g.value)</div> #endfor</td>
-								</tr>
-								<tr>
-									<th scope="row">#(meta.l10n.entitlements_purchased)</th>
-									<td>#for(g in row.grants): <div>#(g.label): #(g.value)</div> #endfor</td>
-								</tr>
-								<tr>
-									<th scope="row">#(meta.l10n.entitlements_paid)</th>
-									<td>#(row.paid)
-										#for(p in row.payments): <div>#(p.label): #(p.value)</div> #endfor
-									</td>
-								</tr>
-								<tr>
-									<th scope="row">#(meta.l10n.entitlements_override)</th>
-									<td>
-										#if(row.hasOverride):
-											<div>#(row.overrideValue)</div>
-											<div>#(meta.l10n.entitlements_override_reason): #(row.overrideReason)</div>
-											<div>#(meta.l10n.entitlements_override_set_by): #(row.overrideSetBy)</div>
-											#if(row.overrideValidUntil):
-												<div>#(meta.l10n.entitlements_override_ends): #(row.overrideValidUntil)</div>
-											#endif
-											#if(row.reducesPaid):
-												<div class="tag tag-critical">#(meta.l10n.entitlements_reduces_paid)</div>
-												#if(row.paidReductionReference):
-													<div>#(meta.l10n.entitlements_reference): #(row.paidReductionReference)</div>
-												#endif
-											#endif
-											<form action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/remove" method="post" style="display:inline">
-												<button type="submit" class="btn btn-ghost">#(meta.l10n.entitlements_action_remove)</button>
-											</form>
-										#else:
-											#(meta.l10n.entitlements_no_override)
-										#endif
-									</td>
-								</tr>
-								<tr><th scope="row">#(meta.l10n.entitlements_effective)</th><td><strong>#(row.effective)</strong></td></tr>
-							</tbody>
-						</table>
+				<table class="table entitlements-table">
+					<thead>
+						<tr>
+							<th>#(meta.l10n.entitlements_column_key)</th>
+							<th>#(meta.l10n.entitlements_column_type)</th>
+							<th>#(meta.l10n.entitlements_effective)</th>
+							<th>#(meta.l10n.entitlements_column_source)</th>
+							<th>#(meta.l10n.entitlements_column_paid)</th>
+							<th>#(meta.l10n.entitlements_column_actions)</th>
+						</tr>
+					</thead>
+					<tbody>
+						#for(row in rows):
+							<tr>
+								<td>#(row.key)</td>
+								<td>#(row.type)</td>
+								<td><strong>#(row.effective)</strong></td>
+								<td><span class="tag tag-neutral">#(row.sourceHint)</span></td>
+								<td>#if(row.hasPaid): <span class="tag tag-accent">#(meta.l10n.entitlements_paid_yes) #(row.paid)</span> #endif</td>
+								<td class="table-actions">
+									<a class="btn btn-secondary" data-dialog-open="dlg-#(row.key)" href="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)">#(meta.l10n.entitlements_action_edit)</a>
+								</td>
+							</tr>
+						#endfor
+					</tbody>
+				</table>
 
-						<form class="form" action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/override" method="post">
-							<label class="form-label" for="value-#(row.key)">#(meta.l10n.entitlements_field_value)</label>
-							<input class="input" type="text" id="value-#(row.key)" name="value" value="#(row.formValue)" required>
-							<label class="form-label" for="reason-#(row.key)">#(meta.l10n.entitlements_field_reason)</label>
-							<input class="input" type="text" id="reason-#(row.key)" name="reason" maxlength="500" required>
-							<label class="form-label" for="until-#(row.key)">#(meta.l10n.entitlements_field_valid_until)</label>
-							<input class="input" type="date" id="until-#(row.key)" name="valid_until">
-							<div class="form-actions">
-								<button type="submit" class="btn btn-primary">#(meta.l10n.entitlements_action_set)</button>
-							</div>
-						</form>
-					</section>
+				#for(row in rows):
+					<dialog class="dialog dialog-wide" id="dlg-#(row.key)" aria-labelledby="dlg-title-#(row.key)">
+						<h3 class="dialog-title" id="dlg-title-#(row.key)">#(row.key)</h3>
+						<div class="dialog-body">
+							#extend("users/partials/entitlement-detail")
+						</div>
+						<div class="dialog-actions">
+							<button type="button" class="btn btn-ghost" data-dialog-close>#(meta.l10n.common_cancel)</button>
+						</div>
+					</dialog>
 				#endfor
 
 				<section class="card">
@@ -103,5 +80,57 @@
 				</section>
 			#endif
 		#endif
+
+		<script>
+		(function () {
+			// Progressive enhancement: without JavaScript the Edit link opens the single-key page.
+			document.querySelectorAll('[data-dialog-open]').forEach(function (link) {
+				link.addEventListener('click', function (event) {
+					var dialog = document.getElementById(link.dataset.dialogOpen);
+					if (dialog && dialog.showModal) { event.preventDefault(); dialog.showModal(); }
+				});
+			});
+			document.querySelectorAll('dialog [data-dialog-close]').forEach(function (button) {
+				button.addEventListener('click', function () { button.closest('dialog').close(); });
+			});
+			// Forms inside a dialog post with fetch: a redirect means success (reload); a page means
+			// the confirmation or warning, which replaces the dialog body.
+			function wire(root) {
+				root.querySelectorAll('form[data-dialog-form]').forEach(function (form) {
+					form.addEventListener('submit', function (event) {
+						var body = form.closest('.dialog-body');
+						if (!body || !window.fetch) { return; }
+						event.preventDefault();
+						fetch(form.action, { method: 'POST', credentials: 'same-origin', body: new URLSearchParams(new FormData(form)) })
+							.then(function (response) {
+								if (response.redirected) { window.location.href = response.url; return null; }
+								return response.text();
+							})
+							.then(function (html) {
+								if (html === null) { return; }
+								var fragment = new DOMParser().parseFromString(html, 'text/html').getElementById('confirm-fragment');
+								if (!fragment) { form.submit(); return; }
+								body.innerHTML = fragment.innerHTML;
+								wire(body);
+								wireAck(body);
+							})
+							.catch(function () { form.submit(); });
+					});
+				});
+			}
+			// Submit stays disabled until the acknowledgment is ticked and a reference is entered.
+			function wireAck(root) {
+				var box = root.querySelector('#ack-checkbox');
+				var ref = root.querySelector('#ack-reference');
+				var btn = root.querySelector('#ack-submit');
+				if (!box || !ref || !btn) { return; }
+				function sync() { btn.disabled = !(box.checked && ref.value.trim() !== ''); }
+				box.addEventListener('change', sync);
+				ref.addEventListener('input', sync);
+				sync();
+			}
+			wire(document);
+		})();
+		</script>
 	#endexport
 #endextend

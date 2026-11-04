@@ -9,11 +9,15 @@
 			<p class="empty-state">#(meta.l10n.users_unavailable)</p>
 		#endif
 
+		#if(refused):
+			<p class="empty-state">#(meta.l10n.users_refused)#if(refusedMessage): #(meta.l10n.users_refused_detail) #(refusedMessage)#endif</p>
+		#endif
+
 		#if(isEmpty):
 			<p class="empty-state">#(meta.l10n.users_empty)</p>
 		#endif
 
-		#if(!unavailable):
+		#if(!unavailable && !refused):
 
 		<table class="table">
 			<thead>
@@ -29,35 +33,39 @@
 					<tr>
 						<td>#(u.email)</td>
 						<td>
+							<div class="tag-cloud">
 							#for(role in u.roles):
-								<span class="tag">#(role)
-									<form action="#(meta.basePath)/users/#(u.id)/roles/#(role)/remove" method="post" style="display:inline">
-										<button type="submit" class="btn btn-ghost btn-icon" aria-label="#(meta.l10n.users_remove_role_prefix)#(role)#(meta.l10n.users_remove_role_suffix)">&times;</button>
+								<span class="tag tag-neutral tag-removable">#(role)
+									<form action="#(meta.basePath)/users/#(u.id)/roles/#(role)/remove" method="post" style="display:inline" data-confirm="#(meta.l10n.users_confirm_remove_role_prefix)#(role)#(meta.l10n.users_confirm_remove_role_middle)#(u.email)#(meta.l10n.users_confirm_remove_role_suffix)" onsubmit="return confirm(this.dataset.confirm)">
+										<button type="submit" class="tag-remove" aria-label="#(meta.l10n.users_remove_role_prefix)#(role)#(meta.l10n.users_remove_role_suffix)">&times;</button>
 									</form>
 								</span>
 							#endfor
+							</div>
 							#if(!u.availableRoles.isEmpty):
-								<form action="#(meta.basePath)/users/#(u.id)/roles" method="post" style="display:inline-block">
-									<select name="role">
+								<form action="#(meta.basePath)/users/#(u.id)/roles" method="post" class="inline-controls" style="display:flex;gap:8px;align-items:center">
+									<select class="input input-inline" name="role" aria-label="#(meta.l10n.users_field_role)">
 										#for(role in u.availableRoles):
 											<option value="#(role)">#(role)</option>
 										#endfor
 									</select>
-									<button type="submit" class="btn btn-ghost">#(meta.l10n.users_action_add_role)</button>
+									<button type="submit" class="btn btn-secondary">#(meta.l10n.users_action_add_role)</button>
 								</form>
 							#endif
 						</td>
 						<td>
+							<div class="tag-cloud">
 							#for(service in u.deniedServices):
-								<span class="tag tag-critical">#(service)
-									<form action="#(meta.basePath)/users/#(u.id)/deny-entries/#(service)/remove" method="post" style="display:inline">
-										<button type="submit" class="btn btn-ghost btn-icon" aria-label="#(meta.l10n.users_remove_deny_prefix)#(service)#(meta.l10n.users_remove_deny_suffix)">&times;</button>
+								<span class="tag tag-critical tag-removable">#(service)
+									<form action="#(meta.basePath)/users/#(u.id)/deny-entries/#(service)/remove" method="post" style="display:inline" data-confirm="#(meta.l10n.users_confirm_remove_deny_prefix)#(service)#(meta.l10n.users_confirm_remove_deny_middle)#(u.email)#(meta.l10n.users_confirm_remove_deny_suffix)" onsubmit="return confirm(this.dataset.confirm)">
+										<button type="submit" class="tag-remove" aria-label="#(meta.l10n.users_remove_deny_prefix)#(service)#(meta.l10n.users_remove_deny_suffix)">&times;</button>
 									</form>
 								</span>
 							#endfor
-							<form action="#(meta.basePath)/users/#(u.id)/deny-entries" method="post" style="display:inline-block">
-								<input type="text" name="service" placeholder="#(meta.l10n.users_placeholder_service_name)" required>
-								<button type="submit" class="btn btn-ghost">#(meta.l10n.users_action_deny_service)</button>
+							</div>
+							<form action="#(meta.basePath)/users/#(u.id)/deny-entries" method="post" style="display:flex;gap:8px;align-items:center">
+								<input class="input input-inline" type="text" name="service" aria-label="#(meta.l10n.users_field_service)" placeholder="#(meta.l10n.users_placeholder_service_name)" required>
+								<button type="submit" class="btn btn-secondary">#(meta.l10n.users_action_deny_service)</button>
 							</form>
 						</td>
 						<td>

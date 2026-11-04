@@ -1,0 +1,59 @@
+<table class="table">
+	<tbody>
+		<tr><th scope="row">#(meta.l10n.entitlements_default)</th><td>#(row.defaultValue)</td></tr>
+		<tr>
+			<th scope="row">#(meta.l10n.entitlements_tier_grants)</th>
+			<td>#for(g in row.tierGrants): <div>#(g.label): #(g.value)</div> #endfor</td>
+		</tr>
+		<tr>
+			<th scope="row">#(meta.l10n.entitlements_purchased)</th>
+			<td>#for(g in row.grants): <div>#(g.label): #(g.value)</div> #endfor</td>
+		</tr>
+		<tr>
+			<th scope="row">#(meta.l10n.entitlements_paid)</th>
+			<td>#(row.paid)
+				#for(c in row.charges): <div>#(c.label): #(c.value)</div> #endfor
+			</td>
+		</tr>
+		<tr>
+			<th scope="row">#(meta.l10n.entitlements_override)</th>
+			<td>
+				#if(row.hasOverride):
+					<div>#(row.overrideValue)</div>
+					<div>#(meta.l10n.entitlements_override_reason): #(row.overrideReason)</div>
+					<div>#(meta.l10n.entitlements_override_set_by): #(row.overrideSetBy)</div>
+					#if(row.overrideValidUntil):
+						<div>#(meta.l10n.entitlements_override_ends): #(row.overrideValidUntil)</div>
+					#endif
+					#if(row.reducesPaid):
+						<div class="tag tag-critical">#(meta.l10n.entitlements_reduces_paid)</div>
+						#if(row.paidReductionReference):
+							<div>#(meta.l10n.entitlements_reference): #(row.paidReductionReference)</div>
+						#endif
+					#endif
+				#else:
+					#(meta.l10n.entitlements_no_override)
+				#endif
+			</td>
+		</tr>
+		<tr><th scope="row">#(meta.l10n.entitlements_effective)</th><td><strong>#(row.effective)</strong></td></tr>
+	</tbody>
+</table>
+
+<form class="form" data-dialog-form action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/override" method="post">
+	<label class="form-label" for="value-#(row.key)">#(meta.l10n.entitlements_field_value)</label>
+	<input class="input" type="text" id="value-#(row.key)" name="value" value="#(row.formValue)" required>
+	<label class="form-label" for="reason-#(row.key)">#(meta.l10n.entitlements_field_reason)</label>
+	<input class="input" type="text" id="reason-#(row.key)" name="reason" maxlength="500" required>
+	<label class="form-label" for="until-#(row.key)">#(meta.l10n.entitlements_field_valid_until)</label>
+	<input class="input" type="date" id="until-#(row.key)" name="valid_until">
+	<div class="form-actions">
+		<button type="submit" class="btn btn-primary">#(meta.l10n.entitlements_action_set)</button>
+	</div>
+</form>
+
+#if(row.hasOverride):
+	<form data-dialog-form action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/remove" method="post">
+		<button type="submit" class="btn btn-ghost">#(meta.l10n.entitlements_action_remove)</button>
+	</form>
+#endif
