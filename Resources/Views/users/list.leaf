@@ -9,11 +9,15 @@
 			<p class="empty-state">#(meta.l10n.users_unavailable)</p>
 		#endif
 
+		#if(refused):
+			<p class="empty-state">#(meta.l10n.users_refused)#if(refusedMessage): #(meta.l10n.users_refused_detail) #(refusedMessage)#endif</p>
+		#endif
+
 		#if(isEmpty):
 			<p class="empty-state">#(meta.l10n.users_empty)</p>
 		#endif
 
-		#if(!unavailable):
+		#if(!unavailable && !refused):
 
 		<table class="table">
 			<thead>
