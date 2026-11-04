@@ -31,7 +31,9 @@ struct MetricsController: RouteCollection {
         try await req.adminAPI.activeMaintenanceCount()
       }
       async let issues = Self.card(href: "\(base)/users") {
-        try await req.authAPI.fetchRestrictedUserCount().restrictedUsers
+        guard let accessToken else { throw Abort(.unauthorized) }
+        return try await req.authAPI.fetchRestrictedUserCount(accessToken: accessToken)
+          .restrictedUsers
       }
 
       let users = await userStats

@@ -73,8 +73,10 @@ struct UsersController: RouteCollection {
       )
     }
     let rolesBySubject = Dictionary(
-      uniqueKeysWithValues: try await req.authAPI.listRoles(subjects: withSubject.map(\.1))
-        .map { ($0.subject, $0) })
+      uniqueKeysWithValues: try await req.authAPI.listRoles(
+        subjects: withSubject.map(\.1), accessToken: accessToken
+      )
+      .map { ($0.subject, $0) })
 
     let summaries = withSubject.map { identity, subject -> LeafUserSummary in
       let roles = rolesBySubject[subject]
@@ -103,7 +105,8 @@ struct UsersController: RouteCollection {
       struct RoleForm: Content { let role: String }
       let form = try req.content.decode(RoleForm.self)
       let actingUserSub = try await requireActingUserSub(req)
-      try await req.authAPI.addRole(subject: subject, role: form.role, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      try await req.authAPI.addRole(subject: subject, role: form.role, accessToken: accessToken)
       req.logger.info(
         "addRole: \(actingUserSub) added role \(form.role) to \(subject)")
       return req.redirectLocal(to: "/users")
@@ -118,7 +121,8 @@ struct UsersController: RouteCollection {
         throw Abort(.badRequest)
       }
       let actingUserSub = try await requireActingUserSub(req)
-      try await req.authAPI.removeRole(subject: subject, role: role, actingUserSub: actingUserSub)
+      let accessToken = try await requireAccessToken(req)
+      try await req.authAPI.removeRole(subject: subject, role: role, accessToken: accessToken)
       req.logger.info(
         "removeRole: \(actingUserSub) removed role \(role) from \(subject)")
       return req.redirectLocal(to: "/users")
@@ -132,8 +136,9 @@ struct UsersController: RouteCollection {
       struct DenyEntryForm: Content { let service: String }
       let form = try req.content.decode(DenyEntryForm.self)
       let actingUserSub = try await requireActingUserSub(req)
+      let accessToken = try await requireAccessToken(req)
       try await req.authAPI.addDenyEntry(
-        subject: subject, service: form.service, actingUserSub: actingUserSub)
+        subject: subject, service: form.service, accessToken: accessToken)
       req.logger.info(
         "addDenyEntry: \(actingUserSub) denied \(subject) access to \(form.service)")
       return req.redirectLocal(to: "/users")
@@ -148,8 +153,9 @@ struct UsersController: RouteCollection {
         throw Abort(.badRequest)
       }
       let actingUserSub = try await requireActingUserSub(req)
+      let accessToken = try await requireAccessToken(req)
       try await req.authAPI.removeDenyEntry(
-        subject: subject, service: service, actingUserSub: actingUserSub)
+        subject: subject, service: service, accessToken: accessToken)
       req.logger.info(
         "removeDenyEntry: \(actingUserSub) restored \(subject) access to \(service)")
       return req.redirectLocal(to: "/users")

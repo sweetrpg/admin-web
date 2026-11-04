@@ -38,9 +38,9 @@ catalog-web (no CORS concern for server-to-server calls).
   admin-api above, not the shared `X-Internal-Service-Token` this app used to send.
 - **auth-api**: user roles and per-service deny entries, keyed by Auth0 subject -
   `RolesController`'s `/api/admin/roles`/`/api/admin/deny-entries` routes, called via
-  `AuthAPIClient.swift`. Still authenticated with the shared `X-Internal-Service-Token` model
-  (`AUTH_API_INTERNAL_SERVICE_TOKEN`) - `api-client-auth` covers admin-api and users-api only,
-  auth-api's own routes are a follow-up, not yet migrated.
+  `AuthAPIClient.swift`. Forwards the acting admin's own access token as the bearer, like the
+  other backends; `auth-api` verifies it and takes the acting user for its audit log from the
+  token. This app holds no service tokens (platform decision: no service tokens).
   `UsersController.swift` composes this with `users-api`'s identity listing, joined by subject,
   since neither service alone has both halves of what the management UI needs to display - see
   `sweetrpg/platform`'s `split-authz-into-auth-api` change design.md.
@@ -100,8 +100,8 @@ role/service-access management UI, a more sensitive surface than banner manageme
 `admin` role comes from the shared session's `roles` field, verified once by `auth-api` at login
 time in `auth-web` - this app trusts that verification for its own page-access gate rather than
 re-checking per request. The session's `accessToken` (see `SessionUser.swift`) is a separate,
-narrower use: forwarded as the bearer credential on outgoing `admin-api`/`users-api` calls, where
-those services independently re-verify it and check the role themselves - see "Backend
+narrower use: forwarded as the bearer credential on outgoing backend calls (`admin-api`, `users-api`, `auth-api`,
+`entitlements-api`), which independently re-verify it and check the role themselves - see "Backend
 dependencies" above. Trade-off on the page-access gate: a role revoked after login stays in
 effect until the session naturally expires or the user logs out and back in - see
 `AuthRequiredMiddleware.swift`'s doc comment for why re-verifying live isn't a better option
@@ -147,8 +147,5 @@ swift format lint --recursive --strict Sources Tests
 `swift run` serves on `:8080`. Without `REDIS_HOST` set, every visitor reads as logged-out.
 Without `ADMIN_API_URL`/`USERS_API_URL`/`AUTH_API_URL` set, calls default to in-cluster DNS
 names that won't resolve outside the cluster - set them to reachable endpoints for local
-development. `admin-api`/`users-api` calls now forward the session's `accessToken`, so those two
-services need `AUTH_API_URL` configured (to verify it) rather than a matching shared secret on
-this app's side. `AUTH_API_INTERNAL_SERVICE_TOKEN` still needs to match `auth-api`'s own
-`INTERNAL_SERVICE_TOKEN`, or every role/deny-entry call fails closed with a 500 - that surface
-hasn't migrated off the shared-secret model yet.
+development. Every backend call forwards the session's `accessToken` as a bearer, so this app
+needs no secret for any of them.

@@ -105,3 +105,83 @@ struct BackendErrorTests {
     #expect(error.description == "auth-api request failed with status 400: nope")
   }
 }
+
+/// Records every outgoing request and answers with one canned status.
+private final class RecordingClient: Client, @unchecked Sendable {
+  let eventLoop: any EventLoop
+  let status: HTTPStatus
+  private let lock = NSLock()
+  private var sent: [ClientRequest] = []
+
+  init(eventLoop: any EventLoop, status: HTTPStatus) {
+    self.eventLoop = eventLoop
+    self.status = status
+  }
+
+  var requests: [ClientRequest] { lock.withLock { sent } }
+
+  func send(_ request: ClientRequest) -> EventLoopFuture<ClientResponse> {
+    lock.withLock { sent.append(request) }
+    let body = status.code < 300 ? "[]" : #"{"message":"denied"}"#
+    return eventLoop.makeSucceededFuture(
+      ClientResponse(
+        status: status, headers: ["Content-Type": "application/json"],
+        body: ByteBuffer(string: body)
+      ))
+  }
+
+  func delegating(to eventLoop: any EventLoop) -> any Client { self }
+  func logging(to logger: Logger) -> any Client { self }
+  func allocating(to byteBufferAllocator: ByteBufferAllocator) -> any Client { self }
+}
+
+@Suite("Bearer-only backend calls", .serialized)
+struct BearerOnlyTests {
+  private func run(
+    status: HTTPStatus, _ method: HTTPMethod, _ path: String, body: String? = nil
+  ) async throws -> (status: HTTPStatus, requests: [ClientRequest]) {
+    var result = HTTPStatus.ok
+    var recorded: [ClientRequest] = []
+    try await withApp(configure: configure) { app in
+      let client = RecordingClient(eventLoop: app.eventLoopGroup.next(), status: status)
+      app.clients.use { _ in client }
+      let user = SessionUser(
+        sub: "auth0|admin", name: "Ada", email: nil, roles: ["admin"], accessToken: "admin-token",
+        expiry: Date().addingTimeInterval(3600))
+      app.sessionUserProvider = { _ in user }
+      try await app.testing().test(
+        method, path, headers: ["Content-Type": "application/x-www-form-urlencoded"],
+        body: body.map { ByteBuffer(string: $0) }
+      ) { result = $0.status }
+      recorded = client.requests
+    }
+    return (result, recorded)
+  }
+
+  @Test(
+    "role and deny-entry writes carry only the admin's bearer, no service token or acting header")
+  func writesCarryOnlyBearer() async throws {
+    let calls: [(HTTPMethod, String, String?)] = [
+      (.POST, "users/auth0%7Cabc/roles", "role=editor"),
+      (.POST, "users/auth0%7Cabc/roles/editor/remove", nil),
+      (.POST, "users/auth0%7Cabc/deny-entries", "service=catalog"),
+      (.POST, "users/auth0%7Cabc/deny-entries/catalog/remove", nil),
+    ]
+    for (method, path, body) in calls {
+      let (_, requests) = try await run(status: .noContent, method, path, body: body)
+      let sent = try #require(requests.first, "no backend call for \(path)")
+      #expect(sent.headers.bearerAuthorization?.token == "admin-token", "\(path)")
+      #expect(sent.headers.first(name: "X-Internal-Service-Token") == nil, "\(path)")
+      #expect(sent.headers.first(name: "X-Acting-User-Sub") == nil, "\(path)")
+    }
+  }
+
+  @Test("a 401 or 403 from auth-api on a write comes back as that status, not a success")
+  func deniedWrites() async throws {
+    for denied in [HTTPStatus.unauthorized, .forbidden] {
+      let (status, _) = try await run(
+        status: denied, .POST, "users/auth0%7Cabc/roles", body: "role=editor")
+      #expect(status == denied)
+    }
+  }
+}
