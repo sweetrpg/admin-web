@@ -78,8 +78,7 @@ struct BannerController: RouteCollection {
       let input = try Self.decodeInput(req)
       let actingUserSub = try await requireActingUserSub(req)
       let accessToken = try await requireAccessToken(req)
-      let created = try await req.adminAPI.create(
-        input, actingUserSub: actingUserSub, accessToken: accessToken)
+      let created = try await req.adminAPI.create(input, accessToken: accessToken)
       req.logger.info(
         "create: \(actingUserSub) created banner \(created.id) (\(input.scopeType.rawValue) \(input.scopeValue))"
       )

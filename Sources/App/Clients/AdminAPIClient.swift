@@ -61,49 +61,14 @@ struct AdminAPIClient {
     }
   }
 
-  /// admin-api's `POST /banners` requires `created_by` in the body (`createBannerRequest`,
-  /// `binding:"required"`) - `BannerInput` deliberately has no such field (it's also the
-  /// `PUT` payload shape, which admin-api's `updateBannerRequest` does not accept `created_by`
-  /// on, since it's immutable once set). Wrapping `input`'s fields plus `createdBy` here, rather
-  /// than adding an unused field to `BannerInput` for every other caller, keeps the create-only
-  /// requirement local to the one call site that actually needs it.
-  private struct CreateBannerRequestBody: Content {
-    var scopeType: BannerScopeType
-    var scopeValue: String
-    var severity: BannerSeverity
-    var message: String
-    var startsAt: Date?
-    var expiresAt: Date
-    var createdBy: String
-
-    enum CodingKeys: String, CodingKey {
-      case scopeType = "scope_type"
-      case scopeValue = "scope_value"
-      case severity
-      case message
-      case startsAt = "starts_at"
-      case expiresAt = "expires_at"
-      case createdBy = "created_by"
-    }
-  }
-
-  func create(_ input: BannerInput, actingUserSub: String, accessToken: String) async throws
-    -> Banner
-  {
+  /// `created_by` is not sent: admin-api stamps it from the authenticated viewer, so a
+  /// client-supplied value would be redundant and spoofable.
+  func create(_ input: BannerInput, accessToken: String) async throws -> Banner {
     try await withSpan("client-create-banner") { _ in
-      let body = CreateBannerRequestBody(
-        scopeType: input.scopeType,
-        scopeValue: input.scopeValue,
-        severity: input.severity,
-        message: input.message,
-        startsAt: input.startsAt,
-        expiresAt: input.expiresAt,
-        createdBy: actingUserSub
-      )
       let response = try await post(
         URI(string: baseURL + "/banners"), accessToken: accessToken
       ) { req in
-        try req.content.encode(body)
+        try req.content.encode(input)
       }
       try Self.throwOnFailure(response)
       return try response.content.decode(Banner.self)
