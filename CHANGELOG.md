@@ -1,4 +1,15 @@
 
+## 0.32.0 - 2026-11-05
+
+### Added
+- One row per person, linked logins, and a service select from auth-api
+
+
+### Fixed
+- Stop sending created_by on banner create
+
+
+
 ## 0.31.1 - 2026-11-05
 
 ### Changed
