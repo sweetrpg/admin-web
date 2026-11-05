@@ -10,10 +10,7 @@ resources:
   - middlewares/errors.yaml
   - middlewares/strip.yaml
   - pod-monitor.yaml
-  - secrets/admin.yaml
-  - secrets/auth.yaml
   - secrets/shared.yaml
-  - secrets/users.yaml
 
 labels:
   - pairs:

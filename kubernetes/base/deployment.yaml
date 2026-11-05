@@ -37,12 +37,6 @@ spec:
                       - configMapRef:
                             name: web-env
                       - secretRef:
-                            name: web-users-api
-                      - secretRef:
-                            name: web-auth-api
-                      - secretRef:
-                            name: web-admin-api
-                      - secretRef:
                             name: web-shared-session
                   ports:
                       - containerPort: 8080
