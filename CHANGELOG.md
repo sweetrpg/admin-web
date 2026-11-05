@@ -1,4 +1,11 @@
 
+## 0.31.1 - 2026-11-05
+
+### Changed
+- Forward the admin's bearer to auth-api and drop the service tokens
+
+
+
 ## 0.31.0 - 2026-11-04
 
 ### Added
