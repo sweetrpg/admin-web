@@ -31,7 +31,13 @@
 			<tbody>
 				#for(u in users):
 					<tr>
-						<td>#(u.email)</td>
+						<td>#(u.email)
+							<div class="tag-cloud">
+							#for(identity in u.identities):
+								<span class="tag tag-outline">#(identity)</span>
+							#endfor
+							</div>
+						</td>
 						<td>
 							<div class="tag-cloud">
 							#for(role in u.roles):
@@ -63,10 +69,18 @@
 								</span>
 							#endfor
 							</div>
-							<form action="#(meta.basePath)/users/#(u.id)/deny-entries" method="post" style="display:flex;gap:8px;align-items:center">
-								<input class="input input-inline" type="text" name="service" aria-label="#(meta.l10n.users_field_service)" placeholder="#(meta.l10n.users_placeholder_service_name)" required>
-								<button type="submit" class="btn btn-secondary">#(meta.l10n.users_action_deny_service)</button>
-							</form>
+							#if(servicesUnavailable):
+								<p class="form-hint">#(meta.l10n.users_services_unavailable)</p>
+							#else:
+								<form action="#(meta.basePath)/users/#(u.id)/deny-entries" method="post" style="display:flex;gap:8px;align-items:center">
+									<select class="input input-inline" name="service" aria-label="#(meta.l10n.users_field_service)" required>
+										#for(service in services):
+											<option value="#(service.id)">#(service.name)</option>
+										#endfor
+									</select>
+									<button type="submit" class="btn btn-secondary">#(meta.l10n.users_action_deny_service)</button>
+								</form>
+							#endif
 						</td>
 						<td>
 							#if(u.userID):

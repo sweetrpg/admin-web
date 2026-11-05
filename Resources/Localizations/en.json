@@ -232,5 +232,6 @@
   "entitlements.source_override": "override",
   "entitlements.source_purchased": "purchased",
   "entitlements.source_default": "default",
-  "entitlements.back_to_list": "Back to this user's entitlements"
+  "entitlements.back_to_list": "Back to this user's entitlements",
+  "users.services_unavailable": "The list of services could not be loaded, so access cannot be denied from here right now."
 }

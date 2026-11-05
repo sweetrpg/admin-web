@@ -20,6 +20,12 @@ struct RestrictedUsersStats: Content {
   }
 }
 
+/// A service a user can be denied, from `auth-api`'s registry (`GET /api/admin/services`).
+struct ServiceOption: Content {
+  let id: String
+  let name: String
+}
+
 /// Thin client for `auth-api`'s subject-keyed `/api/admin/roles`/`/api/admin/deny-entries`
 /// role/service-access management surface - the counterpart to `UsersAPIClient.swift`'s identity
 /// listing. `admin-web`'s role-management UI composes both: `users-api` for who a user is
@@ -63,6 +69,17 @@ struct AuthAPIClient {
         URI(string: baseURL + "/api/admin/deny-entries/stats"), accessToken: accessToken)
       try Self.throwOnFailure(response)
       return try response.content.decode(RestrictedUsersStats.self)
+    }
+  }
+
+  /// The registered services a user can be denied. The deny form offers exactly these; the list
+  /// is never guessed on this side.
+  func listServices(accessToken: String) async throws -> [ServiceOption] {
+    try await withSpan("client-list-services") { _ in
+      let response = try await get(
+        URI(string: baseURL + "/api/admin/services"), accessToken: accessToken)
+      try Self.throwOnFailure(response)
+      return try response.content.decode([ServiceOption].self)
     }
   }
 
