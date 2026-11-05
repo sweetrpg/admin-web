@@ -9,6 +9,14 @@ struct UserIdentity: Content {
   let id: String
   let email: String
   let subject: String?
+  /// Every login linked to this person (`users-api` always sends it; absent from older releases).
+  let subjects: [String]?
+
+  /// All linked Auth0 subjects, primary first. Falls back to `subject` for an older `users-api`.
+  var allSubjects: [String] {
+    if let subjects, !subjects.isEmpty { return subjects }
+    return subject.map { [$0] } ?? []
+  }
 }
 
 /// `users-api`'s `GET /admin/stats` body - total user count, the count active within a rolling

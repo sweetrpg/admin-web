@@ -61,13 +61,20 @@ struct UsersListContext: Content {
   /// True when a backend answered with an error status; `refusedMessage` is its message, if any.
   let refused: Bool
   let refusedMessage: String?
+  /// The services offered in the deny form; empty with `servicesUnavailable` when the list
+  /// could not be loaded, in which case the form is replaced by a message.
+  let services: [ServiceOption]
+  let servicesUnavailable: Bool
   let user: LeafUser?
   let meta: PageMeta
 
   init(
     users: [LeafUserSummary], isEmpty: Bool, allRoles: [String], unavailable: Bool,
-    refused: Bool = false, refusedMessage: String? = nil, user: LeafUser?, meta: PageMeta
+    refused: Bool = false, refusedMessage: String? = nil, services: [ServiceOption] = [],
+    servicesUnavailable: Bool = false, user: LeafUser?, meta: PageMeta
   ) {
+    self.services = services
+    self.servicesUnavailable = servicesUnavailable
     self.users = users
     self.isEmpty = isEmpty
     self.allRoles = allRoles
@@ -90,6 +97,8 @@ struct LeafUserSummary: Content {
   /// `id` above (the Auth0 subject `auth-api` keys on).
   let userID: String
   let email: String
+  /// Every login linked to this person, primary first.
+  let identities: [String]
   let roles: [String]
   let deniedServices: [String]
   /// Roles not already assigned - what the "add role" dropdown should offer, so the form can't
@@ -97,8 +106,10 @@ struct LeafUserSummary: Content {
   let availableRoles: [String]
 
   init(
-    subject: String, userID: String = "", email: String, roles: [String], deniedServices: [String]
+    subject: String, userID: String = "", email: String, identities: [String] = [],
+    roles: [String], deniedServices: [String]
   ) {
+    self.identities = identities
     self.id = subject.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? subject
     self.userID = userID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? userID
     self.email = email

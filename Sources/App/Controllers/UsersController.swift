@@ -59,31 +59,48 @@ struct UsersController: RouteCollection {
   private func renderList(req: Request) async throws -> View {
     let accessToken = try await requireAccessToken(req)
     let identities = try await req.usersAPI.listUsers(accessToken: accessToken)
-    // Role/deny-entry management needs a subject to act on - a user with no Auth0 LoginProfile
-    // yet (shouldn't normally happen; Auth0 is the platform's sole login mechanism) has nothing
-    // to compose against and is left out rather than shown with broken controls.
-    let withSubject = identities.compactMap { identity -> (UserIdentity, String)? in
-      guard let subject = identity.subject else { return nil }
-      return (identity, subject)
+    // One row per person: users-api lists every linked login in `subjects`. Role and deny-entry
+    // management act on the person through any one of those logins, so the first stands for the
+    // person in every auth-api call. A person with no login at all has nothing to compose
+    // against and is left out rather than shown with broken controls.
+    var order: [String] = []
+    var people: [String: (identity: UserIdentity, subjects: [String])] = [:]
+    for identity in identities where !identity.allSubjects.isEmpty {
+      if var existing = people[identity.id] {
+        existing.subjects += identity.allSubjects.filter { !existing.subjects.contains($0) }
+        people[identity.id] = existing
+      } else {
+        order.append(identity.id)
+        people[identity.id] = (identity, identity.allSubjects)
+      }
     }
-    let skipped = identities.count - withSubject.count
+    let skipped = identities.count - order.count
     if skipped > 0 {
       req.logger.warning(
         "list: \(skipped) of \(identities.count) users-api identities have no Auth0 subject, omitted from the list"
       )
     }
+    let primaries = order.compactMap { people[$0]?.subjects.first }
     let rolesBySubject = Dictionary(
-      uniqueKeysWithValues: try await req.authAPI.listRoles(
-        subjects: withSubject.map(\.1), accessToken: accessToken
-      )
-      .map { ($0.subject, $0) })
+      try await req.authAPI.listRoles(subjects: primaries, accessToken: accessToken)
+        .map { ($0.subject, $0) }, uniquingKeysWith: { first, _ in first })
 
-    let summaries = withSubject.map { identity, subject -> LeafUserSummary in
-      let roles = rolesBySubject[subject]
+    let summaries = order.compactMap { id -> LeafUserSummary? in
+      guard let person = people[id], let primary = person.subjects.first else { return nil }
+      let roles = rolesBySubject[primary]
       return LeafUserSummary(
-        subject: subject, userID: identity.id, email: identity.email,
-        roles: roles?.roles ?? ["user"],
-        deniedServices: roles?.deniedServices ?? [])
+        subject: primary, userID: id, email: person.identity.email, identities: person.subjects,
+        roles: roles?.roles ?? ["user"], deniedServices: roles?.deniedServices ?? [])
+    }
+
+    // A failure here degrades only the deny form: the rest of the page still renders.
+    var services: [ServiceOption] = []
+    var servicesUnavailable = false
+    do {
+      services = try await req.authAPI.listServices(accessToken: accessToken)
+    } catch {
+      req.logger.error("list: auth-api services list failed: \(error)")
+      servicesUnavailable = true
     }
 
     return try await req.view.render(
@@ -93,6 +110,8 @@ struct UsersController: RouteCollection {
         isEmpty: summaries.isEmpty,
         allRoles: Self.allRoles,
         unavailable: false,
+        services: services,
+        servicesUnavailable: servicesUnavailable,
         user: (await req.currentUser).map(LeafUser.init),
         meta: PageMeta(req)
       ))
