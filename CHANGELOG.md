@@ -1,4 +1,11 @@
 
+## 0.34.1 - 2026-11-06
+
+### Fixed
+- Meet restricted pod security on web-v1
+
+
+
 ## 0.34.0 - 2026-11-06
 
 ### Added

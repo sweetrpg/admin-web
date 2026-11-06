@@ -25,12 +25,27 @@ spec:
         spec:
             serviceAccountName: web
             enableServiceLinks: false
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 999
+                runAsGroup: 999
+                seccompProfile:
+                    type: RuntimeDefault
             imagePullSecrets:
                 - name: sweetrpg-registry
             containers:
                 - name: app
                   image: admin-web
                   imagePullPolicy: Always
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
                   envFrom:
                       - configMapRef:
                             name: web-common
@@ -62,4 +77,7 @@ spec:
                         initialDelaySeconds: 10
                         timeoutSeconds: 10
                         periodSeconds: 10
+            volumes:
+                - name: tmp
+                  emptyDir: {}
             restartPolicy: Always
