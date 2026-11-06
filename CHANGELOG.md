@@ -1,4 +1,11 @@
 
+## 0.33.1 - 2026-11-06
+
+### Fixed
+- Act on the icon-button review
+
+
+
 ## 0.33.0 - 2026-11-06
 
 ### Added

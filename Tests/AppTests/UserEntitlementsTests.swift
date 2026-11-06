@@ -361,6 +361,30 @@ struct EntitlementsListTests {
     }
   }
 
+  @Test("every action on the page is an icon button: tooltip, accessible name, no visible text")
+  func actionsAreIconButtons() async throws {
+    let stub = StubEntitlements(records: [paidKey])
+    try await withStub(stub) { app in
+      try await app.testing().test(.GET, "users/u1/entitlements") { res in
+        let body = res.body.string
+        let edit = try #require(
+          body.range(of: #"<a [^>]*data-dialog-open[^>]*>"#, options: .regularExpression))
+        let tag = String(body[edit])
+        #expect(tag.contains("class=\"icon-btn tooltip-host\""))
+        #expect(tag.contains("aria-label=\"Edit\""))
+        #expect(tag.contains("aria-describedby=\"tip-edit-initiative.theme_slots\""))
+        #expect(body.contains("id=\"tip-edit-initiative.theme_slots\" role=\"tooltip\""))
+        // Nothing but the icon sits between the link's opening and closing tags.
+        #expect(body[edit.upperBound...].hasPrefix("<span class=\"icon-mask\""))
+        let remove = try #require(
+          body.range(
+            of: #"<button [^>]*aria-label="Remove override"[^>]*>"#, options: .regularExpression))
+        #expect(body[remove.upperBound...].hasPrefix("<span class=\"icon-mask\""))
+        #expect(body.contains("<span class=\"tooltip-title\">Remove override</span>"))
+      }
+    }
+  }
+
   @Test("each Edit link falls back to the single-key page and opens a native dialog with JS")
   func editFallbackAndDialog() async throws {
     let stub = StubEntitlements(records: [paidKey])
@@ -465,6 +489,17 @@ struct UsersPageStyleTests {
     let list = try String(contentsOfFile: "Resources/Views/banners/list.leaf", encoding: .utf8)
     #expect(list.contains("onsubmit=\"return confirm(this.dataset.confirm)\""))
     #expect(list.contains("icon-btn tooltip-host icon-btn-danger"))
+    #expect(list.contains("data-confirm=\"#(banner.deleteConfirm)\""))
+  }
+
+  @Test("the banner delete confirmation is one translatable string with a name placeholder")
+  func deleteConfirmPlaceholder() throws {
+    let banner = Banner(
+      id: "b1", scopeType: .platform, scopeValue: "", severity: .info, message: "Downtime",
+      startsAt: nil, expiresAt: Date(timeIntervalSince1970: 0), createdBy: nil, createdAt: nil,
+      updatedAt: nil)
+    let leaf = LeafBanner(banner, deleteConfirmTemplate: "Delete \"{name}\"? Gone for good.")
+    #expect(leaf.deleteConfirm == "Delete \"Downtime\"? Gone for good.")
   }
 }
 
