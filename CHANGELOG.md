@@ -1,4 +1,11 @@
 
+## 0.34.0 - 2026-11-06
+
+### Added
+- Label email-less users by username, name or subject
+
+
+
 ## 0.33.1 - 2026-11-06
 
 ### Fixed
