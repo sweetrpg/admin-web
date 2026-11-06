@@ -54,6 +54,6 @@
 
 #if(row.hasOverride):
 	<form data-dialog-form action="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)/remove" method="post">
-		<button type="submit" class="btn btn-ghost">#(meta.l10n.entitlements_action_remove)</button>
+		<button type="submit" class="icon-btn tooltip-host" aria-label="#(meta.l10n.entitlements_action_remove)"><span class="icon-mask" style="background-color: var(--color-text); mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/undo.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/undo.svg');"></span><span class="tooltip" role="tooltip"><span class="tooltip-title">#(meta.l10n.entitlements_action_remove)</span><span class="tooltip-body">#(meta.l10n.entitlements_hint_remove)</span></span></button>
 	</form>
 #endif
