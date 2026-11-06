@@ -242,6 +242,5 @@
   "banners.hint.edit": "Change this banner's text, scope or dates.",
   "banners.hint.expire": "Ends this banner right away; it stays in the list as expired.",
   "banners.hint.delete": "Deletes this banner permanently.",
-  "banners.confirm_delete_prefix": "Delete the banner \"",
-  "banners.confirm_delete_suffix": "\"? This cannot be undone."
+  "banners.confirm_delete": "Delete the banner \"{name}\"? This cannot be undone."
 }

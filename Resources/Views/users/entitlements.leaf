@@ -36,7 +36,7 @@
 								<td><span class="tag tag-neutral">#(row.sourceHint)</span></td>
 								<td>#if(row.hasPaid): <span class="tag tag-accent">#(meta.l10n.entitlements_paid_yes) #(row.paid)</span> #endif</td>
 								<td class="table-actions">
-									<a data-dialog-open="dlg-#(row.key)" href="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)" class="icon-btn tooltip-host" aria-label="#(meta.l10n.entitlements_action_edit)"><span class="icon-mask" style="background-color: var(--color-text); mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/pen.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/pen.svg');"></span><span class="tooltip" role="tooltip"><span class="tooltip-title">#(meta.l10n.entitlements_action_edit)</span><span class="tooltip-body">#(meta.l10n.entitlements_hint_edit)</span></span></a>
+									<a data-dialog-open="dlg-#(row.key)" href="#(meta.basePath)/users/#(userID)/entitlements/#(row.key)" class="icon-btn tooltip-host" aria-label="#(meta.l10n.entitlements_action_edit)" aria-describedby="tip-edit-#(row.key)"><span class="icon-mask" style="mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/pen.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/pen.svg');"></span><span class="tooltip" id="tip-edit-#(row.key)" role="tooltip"><span class="tooltip-title">#(meta.l10n.entitlements_action_edit)</span><span class="tooltip-body">#(meta.l10n.entitlements_hint_edit)</span></span></a>
 								</td>
 							</tr>
 						#endfor

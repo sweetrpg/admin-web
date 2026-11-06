@@ -39,8 +39,10 @@ struct LeafBanner: Content {
   let message: String
   let status: String
   let expiresAtLabel: String
+  /// The localized delete confirmation as one string, so translations keep their own word order.
+  let deleteConfirm: String
 
-  init(_ banner: Banner) {
+  init(_ banner: Banner, deleteConfirmTemplate: String = "") {
     self.id = banner.id
     self.scopeLabel =
       banner.scopeType == .platform
@@ -49,6 +51,8 @@ struct LeafBanner: Content {
     self.message = banner.message
     self.status = banner.status().rawValue
     self.expiresAtLabel = ISO8601DateFormatter().string(from: banner.expiresAt)
+    self.deleteConfirm = deleteConfirmTemplate.replacingOccurrences(
+      of: "{name}", with: banner.message)
   }
 }
 
