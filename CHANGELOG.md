@@ -1,4 +1,11 @@
 
+## 0.33.0 - 2026-11-06
+
+### Added
+- Turn row actions into icon buttons with tooltips
+
+
+
 ## 0.32.0 - 2026-11-05
 
 ### Added

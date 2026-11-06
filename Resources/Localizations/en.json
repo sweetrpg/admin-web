@@ -233,5 +233,15 @@
   "entitlements.source_purchased": "purchased",
   "entitlements.source_default": "default",
   "entitlements.back_to_list": "Back to this user's entitlements",
-  "users.services_unavailable": "The list of services could not be loaded, so access cannot be denied from here right now."
+  "users.services_unavailable": "The list of services could not be loaded, so access cannot be denied from here right now.",
+  "users.hint.add_role": "Adds the selected role to this person.",
+  "users.hint.deny_service": "Blocks this person from the selected service.",
+  "users.hint.entitlements": "View and override this person's entitlements.",
+  "entitlements.hint.edit": "Opens this key's breakdown and override form.",
+  "entitlements.hint.remove": "Removes the override and restores the computed value.",
+  "banners.hint.edit": "Change this banner's text, scope or dates.",
+  "banners.hint.expire": "Ends this banner right away; it stays in the list as expired.",
+  "banners.hint.delete": "Deletes this banner permanently.",
+  "banners.confirm_delete_prefix": "Delete the banner \"",
+  "banners.confirm_delete_suffix": "\"? This cannot be undone."
 }
