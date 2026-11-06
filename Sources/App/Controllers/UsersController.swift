@@ -89,7 +89,8 @@ struct UsersController: RouteCollection {
       guard let person = people[id], let primary = person.subjects.first else { return nil }
       let roles = rolesBySubject[primary]
       return LeafUserSummary(
-        subject: primary, userID: id, email: person.identity.email, identities: person.subjects,
+        subject: primary, userID: id, email: person.identity.displayLabel,
+        identities: person.subjects,
         roles: roles?.roles ?? ["user"], deniedServices: roles?.deniedServices ?? [])
     }
 

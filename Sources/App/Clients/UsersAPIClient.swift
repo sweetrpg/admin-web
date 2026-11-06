@@ -11,6 +11,23 @@ struct UserIdentity: Content {
   let subject: String?
   /// Every login linked to this person (`users-api` always sends it; absent from older releases).
   let subjects: [String]?
+  /// From the user's profile; either may be missing, empty, or (for `name`) the placeholder
+  /// `User` that provisioning stores when the login had no name or email.
+  let name: String?
+  let username: String?
+
+  /// A readable label for the user: email, else username, else name, else the first subject.
+  /// Empty values and the provisioning placeholder `User` count as absent.
+  var displayLabel: String {
+    func usable(_ value: String?) -> String? {
+      guard let trimmed = value?.trimmingCharacters(in: .whitespaces), !trimmed.isEmpty else {
+        return nil
+      }
+      return trimmed
+    }
+    return usable(email) ?? usable(username) ?? usable(name == "User" ? nil : name)
+      ?? allSubjects.first ?? id
+  }
 
   /// All linked Auth0 subjects, primary first. Falls back to `subject` for an older `users-api`.
   var allSubjects: [String] {

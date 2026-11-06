@@ -110,4 +110,62 @@ struct UsersByPersonTests {
     ])
     #expect(body.contains("ada@example.com") && body.contains("auth0|a"))
   }
+
+  @Test("an email-less user shows the best readable identity under the subject tags")
+  func emailLessLabelOnPage() async throws {
+    let json = """
+      [{"id":"u9","email":"","name":"Sha Zean","username":"","subject":"github|34924976","subjects":["github|34924976"]}]
+      """
+    let (body, _) = try await usersPage([
+      "/admin/users": (.ok, json),
+      "/api/admin/roles": (
+        .ok, #"[{"subject":"github|34924976","roles":["user"],"deniedServices":[]}]"#
+      ),
+      "/api/admin/services": (.ok, services),
+    ])
+    #expect(body.contains("<td>Sha Zean"))
+    #expect(body.contains("github|34924976"))
+  }
+}
+
+@Suite("UserIdentity.displayLabel")
+struct DisplayLabelTests {
+  private func identity(_ json: String) throws -> UserIdentity {
+    try JSONDecoder().decode(UserIdentity.self, from: Data(json.utf8))
+  }
+
+  @Test("email wins")
+  func email() throws {
+    let user = try identity(
+      #"{"id":"u","email":"a@b.c","username":"ab","name":"A B","subjects":["x|1"]}"#)
+    #expect(user.displayLabel == "a@b.c")
+  }
+
+  @Test("then username")
+  func username() throws {
+    let user = try identity(
+      #"{"id":"u","email":"","username":"shazean","name":"Sha","subjects":["x|1"]}"#)
+    #expect(user.displayLabel == "shazean")
+  }
+
+  @Test("then name")
+  func name() throws {
+    let user = try identity(
+      #"{"id":"u","email":"","username":"","name":"Sha Zean","subjects":["x|1"]}"#)
+    #expect(user.displayLabel == "Sha Zean")
+  }
+
+  @Test("the provisioning placeholder User does not count as a name")
+  func placeholder() throws {
+    let user = try identity(#"{"id":"u","email":"","name":"User","subjects":["github|1"]}"#)
+    #expect(user.displayLabel == "github|1")
+  }
+
+  @Test("then the first subject, then the id")
+  func subjectThenID() throws {
+    #expect(
+      try identity(#"{"id":"u","email":"","subjects":["github|1","auth0|2"]}"#).displayLabel
+        == "github|1")
+    #expect(try identity(#"{"id":"u","email":"","subjects":[]}"#).displayLabel == "u")
+  }
 }
