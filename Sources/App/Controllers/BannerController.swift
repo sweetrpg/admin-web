@@ -24,7 +24,9 @@ struct BannerController: RouteCollection {
       return try await req.view.render(
         "banners/list",
         ListContext(
-          banners: sorted.map(LeafBanner.init),
+          banners: sorted.map {
+            LeafBanner($0, deleteConfirmTemplate: req.l10n["banners_confirm_delete"] ?? "")
+          },
           isEmpty: sorted.isEmpty,
           user: (await req.currentUser).map(LeafUser.init),
           meta: PageMeta(req)
