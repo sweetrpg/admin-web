@@ -431,6 +431,41 @@ struct UsersPageStyleTests {
       }
     }
   }
+
+  @Test("row actions are icon buttons with a tooltip and an accessible name, not text buttons")
+  func iconButtons() async throws {
+    try await withApp { app in
+      try I18n.loadTables()
+      app.views.use(.leaf)
+      app.get("test-users") { req async throws -> View in
+        let summary = LeafUserSummary(
+          subject: "abc", userID: "u1", email: "alice@example.com", roles: ["user"],
+          deniedServices: [])
+        return try await req.view.render(
+          "users/list",
+          UsersListContext(
+            users: [summary], isEmpty: false, allRoles: UsersController.allRoles,
+            unavailable: false, services: [ServiceOption(id: "catalog", name: "Catalog")],
+            user: nil, meta: PageMeta(req)))
+      }
+      try await app.testing().test(.GET, "test-users") { res in
+        let body = res.body.string
+        for label in ["Add role", "Deny service", "Entitlements"] {
+          #expect(body.contains("aria-label=\"\(label)\""), "\(label)")
+          #expect(body.contains("<span class=\"tooltip-title\">\(label)</span>"), "\(label)")
+        }
+        #expect(body.components(separatedBy: "icon-btn tooltip-host").count - 1 == 3)
+        #expect(!body.contains("btn btn-secondary"))
+      }
+    }
+  }
+
+  @Test("deleting a banner asks for confirmation, with the danger icon button")
+  func bannerDeleteConfirms() throws {
+    let list = try String(contentsOfFile: "Resources/Views/banners/list.leaf", encoding: .utf8)
+    #expect(list.contains("onsubmit=\"return confirm(this.dataset.confirm)\""))
+    #expect(list.contains("icon-btn tooltip-host icon-btn-danger"))
+  }
 }
 
 @Suite("Payment detail")

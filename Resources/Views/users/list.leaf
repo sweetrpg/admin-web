@@ -55,7 +55,7 @@
 											<option value="#(role)">#(role)</option>
 										#endfor
 									</select>
-									<button type="submit" class="btn btn-secondary">#(meta.l10n.users_action_add_role)</button>
+									<button type="submit" class="icon-btn tooltip-host" aria-label="#(meta.l10n.users_action_add_role)"><span class="icon-mask" style="background-color: var(--color-text); mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/user-plus.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/user-plus.svg');"></span><span class="tooltip" role="tooltip"><span class="tooltip-title">#(meta.l10n.users_action_add_role)</span><span class="tooltip-body">#(meta.l10n.users_hint_add_role)</span></span></button>
 								</form>
 							#endif
 						</td>
@@ -78,13 +78,13 @@
 											<option value="#(service.id)">#(service.name)</option>
 										#endfor
 									</select>
-									<button type="submit" class="btn btn-secondary">#(meta.l10n.users_action_deny_service)</button>
+									<button type="submit" class="icon-btn tooltip-host" aria-label="#(meta.l10n.users_action_deny_service)"><span class="icon-mask" style="background-color: var(--color-text); mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/ban.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/ban.svg');"></span><span class="tooltip" role="tooltip"><span class="tooltip-title">#(meta.l10n.users_action_deny_service)</span><span class="tooltip-body">#(meta.l10n.users_hint_deny_service)</span></span></button>
 								</form>
 							#endif
 						</td>
 						<td>
 							#if(u.userID):
-								<a href="#(meta.basePath)/users/#(u.userID)/entitlements">#(meta.l10n.users_action_entitlements)</a>
+								<a href="#(meta.basePath)/users/#(u.userID)/entitlements" class="icon-btn tooltip-host" aria-label="#(meta.l10n.users_action_entitlements)"><span class="icon-mask" style="background-color: var(--color-text); mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/sliders-h.svg'); -webkit-mask-image: url('#(meta.sharedURL)/static/svgs/fontawesome/solid/sliders-h.svg');"></span><span class="tooltip" role="tooltip"><span class="tooltip-title">#(meta.l10n.users_action_entitlements)</span><span class="tooltip-body">#(meta.l10n.users_hint_entitlements)</span></span></a>
 							#endif
 						</td>
 					</tr>
