@@ -22,7 +22,9 @@ struct UsersController: RouteCollection {
 
   /// The fixed role set from `auth-api`'s `Role` enum - kept in sync by hand, same as
   /// `BannerScopeType`/`BannerSeverity`'s Swift mirrors of admin-api's Go enums.
-  static let allRoles = ["user", "submitter", "editor", "moderator", "approver", "admin"]
+  static let allRoles = [
+    "user", "submitter", "editor", "moderator", "approver", "admin", "openfga-writer",
+  ]
 
   @Sendable
   func list(req: Request) async throws -> View {
