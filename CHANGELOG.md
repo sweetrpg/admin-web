@@ -1,4 +1,11 @@
 
+## 0.35.0 - 2026-11-10
+
+### Added
+- Add openfga-writer to the role picker
+
+
+
 ## 0.34.1 - 2026-11-06
 
 ### Fixed

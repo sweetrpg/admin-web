@@ -76,6 +76,7 @@ struct AppTests {
         // appear as add-role options.
         #expect(!body.contains(#"<option value="admin">"#))
         #expect(body.contains(#"<option value="editor">"#))
+        #expect(body.contains(#"<option value="openfga-writer">"#))
       }
     }
   }
