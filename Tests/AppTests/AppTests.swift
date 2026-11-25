@@ -81,7 +81,7 @@ struct AppTests {
     }
   }
 
-  @Test("maintenance-modes list flags an enabled record and an unconfigured scope")
+  @Test("maintenance-modes list distinguishes active, scheduled, past-end and unconfigured")
   func maintenanceModesListRendersConfiguredAndUnconfiguredRows() async throws {
     try await withApp { app in
       app.views.use(.leaf)
@@ -95,10 +95,21 @@ struct AppTests {
             updatedAt: nil))
         let unconfigured = LeafMaintenanceScopeRow(
           scopeType: .service, scopeValue: "assets", displayName: "assets", record: nil)
+        let windowed = [
+          ("main", Date.distantFuture, nil),
+          ("auth", Date(timeIntervalSince1970: 0), Date(timeIntervalSince1970: 60)),
+        ].map { scope, start, end in
+          LeafMaintenanceScopeRow(
+            scopeType: .service, scopeValue: scope, displayName: scope,
+            record: MaintenanceMode(
+              id: scope, scopeType: .service, scopeValue: scope, enabled: true,
+              startsAt: start, endsAt: end, label: scope, description: "", createdAt: nil,
+              updatedAt: nil))
+        }
         return try await req.view.render(
           "maintenance-modes/list",
           MaintenanceModeListContext(
-            rows: [configured, unconfigured], user: nil, meta: PageMeta(req)))
+            rows: [configured, unconfigured] + windowed, user: nil, meta: PageMeta(req)))
       }
       try await app.testing().test(.GET, "test-maintenance-modes") { res in
         #expect(res.status == .ok)
@@ -109,6 +120,11 @@ struct AppTests {
         // Status badges carry a rich tooltip describing what each state means.
         #expect(body.contains(#"<span class="tooltip-body">Maintenance mode is on for this scope"#))
         #expect(body.contains(#"<span class="tooltip-body">No maintenance-mode record exists"#))
+        #expect(body.contains(#"class="tag tag-outline tooltip-host" tabindex="0">Scheduled"#))
+        #expect(
+          body.contains(#"class="tag tag-status-expired tooltip-host" tabindex="0">Past end date"#))
+        // Only the in-window row claims users see the maintenance page.
+        #expect(body.components(separatedBy: "Users see the maintenance page now").count == 2)
         #expect(body.contains(#"action="/maintenance-modes/mm1/toggle""#))
         // Human-friendly label in the visible cell, raw RFC3339 preserved in the tooltip -
         // regression coverage for the squished-columns/inconsistent-sizing fix and for the

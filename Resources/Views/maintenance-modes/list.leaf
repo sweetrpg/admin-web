@@ -22,11 +22,25 @@
 						<td>#(row.displayName)</td>
 						<td>
 							#if(row.configured):
-								#if(row.enabled):
+								#if(row.status == "active"):
 									<span class="tag tag-critical tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_enabled)
 										<span class="tooltip" role="tooltip">
 											<span class="tooltip-title">#(meta.l10n.maintenance_status_enabled)</span>
 											<span class="tooltip-body">#(meta.l10n.maintenance_status_enabled_desc)</span>
+										</span>
+									</span>
+								#elseif(row.status == "scheduled"):
+									<span class="tag tag-outline tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_scheduled)
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.maintenance_status_scheduled)</span>
+											<span class="tooltip-body">#(meta.l10n.maintenance_status_scheduled_desc)</span>
+										</span>
+									</span>
+								#elseif(row.status == "past_end"):
+									<span class="tag tag-status-expired tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_past_end_date)
+										<span class="tooltip" role="tooltip">
+											<span class="tooltip-title">#(meta.l10n.maintenance_status_past_end_date)</span>
+											<span class="tooltip-body">#(meta.l10n.maintenance_status_past_end_date_desc)</span>
 										</span>
 									</span>
 								#else:
@@ -34,14 +48,6 @@
 										<span class="tooltip" role="tooltip">
 											<span class="tooltip-title">#(meta.l10n.maintenance_status_off)</span>
 											<span class="tooltip-body">#(meta.l10n.maintenance_status_off_desc)</span>
-										</span>
-									</span>
-								#endif
-								#if(row.isStale):
-									<span class="tag tag-status-expired tooltip-host" tabindex="0">#(meta.l10n.maintenance_status_past_end_date)
-										<span class="tooltip" role="tooltip">
-											<span class="tooltip-title">#(meta.l10n.maintenance_status_past_end_date)</span>
-											<span class="tooltip-body">#(meta.l10n.maintenance_status_past_end_date_desc)</span>
 										</span>
 									</span>
 								#endif
