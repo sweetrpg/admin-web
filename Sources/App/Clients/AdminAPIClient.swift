@@ -53,11 +53,11 @@ struct AdminAPIClient {
     }
   }
 
-  /// Number of maintenance-mode records with `enabled` set - the metrics page's "active
+  /// Number of maintenance-mode records currently in effect - the metrics page's "active
   /// maintenance" card. Same rationale as `activeBannerCount`.
   func activeMaintenanceCount() async throws -> Int {
     try await withSpan("client-active-maintenance-count") { _ in
-      try await listAllMaintenanceModes().filter { $0.enabled }.count
+      try await listAllMaintenanceModes().filter { $0.status() == .active }.count
     }
   }
 

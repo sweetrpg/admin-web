@@ -21,7 +21,8 @@ struct LeafMaintenanceScopeRow: Content {
   let configured: Bool
   let id: String?
   let enabled: Bool
-  let isStale: Bool
+  /// `MaintenanceMode.Status` raw value; empty when not configured.
+  let status: String
   let label: String
   let startsAtLabel: String
   let startsAtRfc: String
@@ -38,7 +39,7 @@ struct LeafMaintenanceScopeRow: Content {
     self.configured = record != nil
     self.id = record?.id
     self.enabled = record?.enabled ?? false
-    self.isStale = record?.isStale ?? false
+    self.status = record?.status().rawValue ?? ""
     self.label = record?.label ?? ""
     self.startsAtLabel = record.map { humanDateFormatter.string(from: $0.startsAt) } ?? ""
     self.startsAtRfc = record.map { ISO8601DateFormatter().string(from: $0.startsAt) } ?? ""

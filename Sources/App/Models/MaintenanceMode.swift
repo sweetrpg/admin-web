@@ -33,12 +33,20 @@ struct MaintenanceMode: Content {
     case updatedAt = "updated_at"
   }
 
-  /// True when `enabled` but `ends_at` has already passed - admin-api's `enabled` flag
-  /// doesn't auto-clear on expiry (dates are informational only), so the admin list view
-  /// flags this as a likely-stale record per tasks.md 2.2.
-  var isStale: Bool {
-    guard enabled, let endsAt else { return false }
-    return endsAt <= Date()
+  enum Status: String {
+    case off
+    case scheduled
+    case active
+    case pastEnd = "past_end"
+  }
+
+  /// Maintenance is in effect only when `enabled` and `startsAt <= now < endsAt`; a nil
+  /// `endsAt` is open-ended.
+  func status(asOf now: Date = Date()) -> Status {
+    guard enabled else { return .off }
+    if startsAt > now { return .scheduled }
+    if let endsAt, endsAt <= now { return .pastEnd }
+    return .active
   }
 }
 
